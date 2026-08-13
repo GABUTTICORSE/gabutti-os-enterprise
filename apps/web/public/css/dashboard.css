@@ -1,0 +1,1110 @@
+/* =========================================================
+   GS ONE — CENTRO DE OPERACIONES
+   Dashboard ejecutivo V3 · Escala +20%
+   ========================================================= */
+
+#dashboard {
+  --dash-text: #182027;
+  --dash-muted: #6d777e;
+  --dash-border: #d7dde1;
+  --dash-panel: #ffffff;
+  --dash-shadow: 0 14px 36px rgba(20, 28, 34, 0.11);
+  --dash-radius: 18px;
+
+  --dash-red: #ff1744;
+  --dash-orange: #ff8a00;
+  --dash-green: #39ff14;
+  --dash-blue: #2698ff;
+  --dash-purple: #9854ff;
+  --dash-yellow: #e7bc00;
+
+  min-height: 100%;
+  padding: 22px;
+  color: var(--dash-text);
+  font-family: Arial, sans-serif;
+  background: transparent;
+}
+
+body:has(#appView:not(.hidden)),
+#appView,
+#appView .app {
+  background: #d9dee1 !important;
+}
+
+#appView {
+  --dash-green: #39ff14;
+}
+
+#appView main {
+  min-height: 100vh;
+  background:
+    linear-gradient(
+      180deg,
+      #b8c0c5 0%,
+      #cbd1d5 30%,
+      #dfe3e6 65%,
+      #f7f8f9 100%
+    ) !important;
+}
+
+#appView .app {
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+
+/* HEADER EJECUTIVO */
+
+#appView > .executive-header {
+  min-height: 92px;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 28px;
+  padding: 16px 26px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  background:
+    linear-gradient(100deg, #11171b 0%, #232c31 60%, #3b454b 100%);
+  box-shadow: 0 8px 24px rgba(15, 20, 24, 0.18);
+}
+
+.header-eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: #9ea9af;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.header-title-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#appView .header-title h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+.header-version {
+  padding: 4px 7px;
+  border-radius: 5px;
+  color: #101410;
+  background: var(--dash-green);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+#appView .header-title p {
+  margin: 6px 0 0;
+  color: #c1c9cd;
+  font-size: 11px;
+}
+
+.header-session {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.header-session-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--dash-green);
+  box-shadow: 0 0 0 5px rgba(57, 255, 20, 0.12);
+}
+
+.header-session strong,
+.header-session small {
+  display: block;
+}
+
+.header-session strong { font-size: 10px; }
+.header-session small { margin-top: 3px; color: #9ea9af; font-size: 8px; }
+
+#appView .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#appView .header-button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+#appView .header-button:hover { background: rgba(255, 255, 255, 0.14); }
+#appView .header-exit { border-color: rgba(255, 23, 68, 0.5); background: #c8102e; }
+
+#appView nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  padding: 20px 16px;
+
+  border-right:
+    1px solid rgba(255, 255, 255, 0.18);
+
+  background:
+    linear-gradient(
+      180deg,
+      #242c31 0%,
+      #343e44 58%,
+      #4e5960 100%
+    ) !important;
+}
+
+.sidebar-brand {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding: 12px 8px 18px;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-logo {
+  display: block;
+  width: 148px;
+  max-width: 92%;
+  height: auto;
+  object-fit: contain;
+}
+
+.sidebar-system {
+  width: 100%;
+  padding-top: 9px;
+  border-top:
+    1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.sidebar-system strong {
+  display: block;
+  color: white;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+}
+
+.sidebar-system span {
+  display: block;
+  margin-top: 3px;
+  color: #c4cbd0;
+  font-size: 8px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.sidebar-section-label {
+  display: block;
+  margin: 12px 10px 4px;
+  color: #8f9ba2;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+#appView nav .nav {
+  position: relative;
+  min-height: 40px;
+  padding: 9px 11px 9px 38px;
+  border: 0;
+  border-radius: 9px;
+  color: #d5dce0;
+  background: transparent;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  transition: 160ms ease;
+}
+
+#appView nav .nav::before {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  width: 14px;
+  transform: translateY(-50%);
+  color: #93a0a7;
+  font-size: 12px;
+  text-align: center;
+}
+
+.nav[data-view="dashboard"]::before { content: "◆"; }
+.nav[data-view="inbox"]::before { content: "✉"; }
+.nav[data-view="tasks"]::before { content: "✓"; }
+.nav[data-view="clients"]::before { content: "●"; }
+.nav[data-view="commercial_processes"]::before { content: "▣"; }
+.nav[data-view="quotes"]::before { content: "▤"; }
+.nav[data-view="sales_orders"]::before { content: "▰"; }
+.nav[data-view="products"]::before { content: "◇"; }
+.nav[data-view="stock"]::before { content: "▦"; }
+.nav[data-view="imports"]::before { content: "⇄"; }
+.nav[data-view="finance"]::before { content: "$"; }
+.nav[data-view="catalogs"]::before { content: "≡"; }
+.nav[data-view="identity"]::before { content: "◉"; }
+.nav[data-view="activity"]::before { content: "↗"; }
+
+#appView nav .nav:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(2px);
+}
+
+#appView nav .nav.active {
+  color: #101410;
+  background: var(--dash-green);
+  box-shadow: 0 8px 18px rgba(57, 255, 20, 0.16);
+}
+
+#appView nav .nav.active::before { color: #101410; }
+
+.exec-dashboard {
+  display: grid;
+  gap: 17px;
+}
+
+/* BIENVENIDA */
+
+.dashboard-welcome {
+  display: grid;
+  grid-template-columns: 216px 1fr 180px;
+  align-items: stretch;
+  gap: 24px;
+
+  padding: 26px;
+  overflow: hidden;
+
+  border: 1px solid var(--dash-border);
+  border-radius: 24px;
+
+  background: #ffffff;
+  box-shadow:
+    var(--dash-shadow);
+}
+
+.welcome-brand {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 18px;
+
+  border-radius: 18px;
+  color: white;
+  background:
+    linear-gradient(
+      145deg,
+      #1a2125,
+      #404b51
+    );
+  text-align: center;
+}
+
+.welcome-logo-box img {
+  display: block;
+  width: 162px;
+  max-height: 94px;
+  object-fit: contain;
+}
+
+.welcome-brand > span {
+  margin-top: 13px;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.welcome-brand > small {
+  margin-top: 5px;
+  color: #c5cdd1;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.welcome-content {
+  align-self: center;
+}
+
+.welcome-eyebrow {
+  display: block;
+  color: var(--dash-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.welcome-content h2 {
+  margin: 7px 0 13px;
+  font-size: clamp(36px, 3.4vw, 52px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.welcome-content h2 strong {
+  color: #c8102e;
+}
+
+.welcome-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.welcome-context > div {
+  min-width: 252px;
+  padding: 12px 16px;
+
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+  background: #f6f8f9;
+}
+
+.welcome-context b,
+.welcome-context span {
+  display: block;
+}
+
+.welcome-context b {
+  font-size: 16px;
+}
+
+.welcome-context span {
+  margin-top: 3px;
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+#executiveBriefing {
+  margin: 15px 0 0;
+  color: #3e4a51;
+  max-width: 850px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.welcome-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.status-pill strong {
+  font-size: 19px;
+}
+
+.status-critical {
+  color: white;
+  background: var(--dash-red);
+}
+
+.status-attention {
+  color: #161616;
+  background: var(--dash-orange);
+}
+
+.status-ok {
+  color: #101410;
+  background: var(--dash-green);
+}
+
+.welcome-photo {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.profile-photo-frame {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 6px solid #edf0f2;
+  border-radius: 50%;
+  color: white;
+  background: linear-gradient(145deg, #4c565c, #1c2327);
+  box-shadow:
+    0 12px 28px rgba(25, 34, 40, 0.22),
+    0 0 0 1px rgba(24, 32, 39, 0.08);
+}
+
+.profile-photo-frame img {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% 24%;
+}
+
+.profile-photo-frame img.photo-unavailable { display: none; }
+
+.profile-photo-frame span {
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.welcome-photo strong {
+  margin-top: 13px;
+  font-size: 14px;
+}
+
+.welcome-photo small {
+  margin-top: 4px;
+  color: var(--dash-muted);
+  font-size: 10px;
+}
+
+.profile-online {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: #4d595f;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.profile-online i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dash-green);
+  box-shadow: 0 0 0 4px rgba(57, 255, 20, 0.14);
+}
+
+/* MOTORSPORT LIVE */
+
+.motorsport-live {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  overflow: hidden;
+
+  min-height: 52px;
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: white;
+  background:
+    linear-gradient(90deg, #11171b, #1c2429 55%, #11171b);
+
+  box-shadow:
+    0 10px 26px rgba(20, 28, 34, 0.16);
+}
+
+.motorsport-label {
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+
+  color: #111;
+  background: linear-gradient(110deg, #39ff14, #9aff83);
+
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.motorsport-flag {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background:
+    conic-gradient(#111 25%, #fff 0 50%, #111 0 75%, #fff 0) 0 0 / 10px 10px;
+  transform: skewX(-8deg);
+}
+
+.motorsport-label b {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 6px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 5px;
+  font-size: 8px;
+}
+
+.motorsport-label i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff1744;
+  animation: livePulse 1.2s infinite;
+}
+
+.motorsport-window {
+  overflow: hidden;
+}
+
+.motorsport-track {
+  min-height: 52px;
+  width: max-content;
+  display: flex;
+  align-items: center;
+  gap: 58px;
+  padding-left: 100%;
+
+  animation:
+    tickerMove 42s linear infinite;
+}
+
+.motorsport-track span {
+  position: relative;
+  color: #eef2f4;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.motorsport-track span::before {
+  content: "";
+  position: absolute;
+  left: -29px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dash-green);
+  transform: translateY(-50%);
+}
+
+.motorsport-live:hover .motorsport-track { animation-play-state: paused; }
+
+.motorsport-signature {
+  display: grid;
+  place-items: center;
+  padding: 0 18px;
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+  color: #8f9ba2;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  white-space: nowrap;
+}
+
+@keyframes tickerMove {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes livePulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* KPIs */
+
+.exec-kpis {
+  display: grid;
+  grid-template-columns:
+    repeat(6, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.exec-kpi {
+  position: relative;
+  min-height: 140px;
+  padding: 14px;
+
+  border: 1px solid var(--dash-border);
+  border-radius: 14px;
+
+  color: var(--dash-text);
+  background: white;
+  text-align: left;
+
+  box-shadow:
+    0 9px 24px rgba(20, 28, 34, 0.09);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.exec-kpi:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(20, 28, 34, 0.14);
+}
+
+.exec-kpi-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exec-kpi-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 36px;
+
+  border-radius: 9px;
+  background: #f1f4f5;
+}
+
+.exec-kpi-label {
+  color: #38434a;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.exec-kpi b {
+  display: block;
+  margin-top: 18px;
+  font-size: 35px;
+}
+
+.exec-kpi small {
+  display: block;
+  margin-top: 6px;
+  color: var(--dash-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.exec-kpi.red {
+  border-left: 5px solid var(--dash-red);
+}
+
+.exec-kpi.blue {
+  border-left: 5px solid var(--dash-blue);
+}
+
+.exec-kpi.orange {
+  border-left: 5px solid var(--dash-orange);
+}
+
+.exec-kpi.purple {
+  border-left: 5px solid var(--dash-purple);
+}
+
+.exec-kpi.green {
+  border-left: 5px solid var(--dash-green);
+}
+
+.exec-kpi.yellow {
+  border-left: 5px solid var(--dash-yellow);
+}
+
+/* PANELES */
+
+.dashboard-content-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.9fr 1fr;
+  gap: 15px;
+}
+
+.exec-panel {
+  overflow: hidden;
+
+  border: 1px solid var(--dash-border);
+  border-radius: 18px;
+
+  background: white;
+  box-shadow:
+    0 10px 27px rgba(20, 28, 34, 0.09);
+}
+
+.exec-panel-head {
+  min-height: 58px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+
+  padding: 0 15px;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.exec-panel-head small {
+  color: var(--dash-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.exec-panel-head h3 {
+  margin: 3px 0 0;
+  font-size: 17px;
+}
+
+.exec-panel-head button {
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 9px;
+
+  color: white;
+  background: #1b2226;
+  font-size: 10px;
+}
+
+.exec-panel-content {
+  padding: 12px;
+}
+
+.exec-priority-group {
+  margin-bottom: 8px;
+  padding: 11px;
+
+  border-radius: 12px;
+  color: inherit;
+}
+
+.exec-priority-group:last-child {
+  margin-bottom: 0;
+}
+
+.exec-priority-group.critical {
+  color: white;
+  background: var(--dash-red);
+}
+
+.exec-priority-group.attention {
+  color: #171717;
+  background: var(--dash-orange);
+}
+
+.exec-priority-group.operational {
+  color: #101410;
+  background: var(--dash-green);
+}
+
+.exec-priority-title {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 7px;
+
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.exec-priority-title span,
+.exec-priority-item,
+.exec-priority-item span {
+  color: inherit !important;
+}
+
+.exec-priority-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+
+  padding: 6px 0;
+  font-size: 11px;
+}
+
+/* ACCIONES */
+
+.exec-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.exec-action {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px;
+
+  border: 1px solid var(--dash-border);
+  border-radius: 12px;
+
+  color: var(--dash-text);
+  background: #f7f9fa;
+  text-align: left;
+}
+
+.exec-action:hover {
+  background: white;
+  box-shadow:
+    0 6px 15px rgba(20, 28, 34, 0.10);
+}
+
+.exec-action-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 36px;
+
+  border-radius: 9px;
+  color: #c8102e;
+  background: rgba(200, 16, 46, 0.09);
+}
+
+.exec-action span:last-child {
+  font-size: 11px;
+  font-weight: 750;
+}
+
+/* RESUMEN */
+
+.exec-summary-primary {
+  padding: 15px;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.exec-summary-primary span,
+.exec-summary-primary small {
+  display: block;
+  color: var(--dash-muted);
+  font-size: 10px;
+}
+
+.exec-summary-primary strong {
+  display: block;
+  margin: 7px 0;
+  font-size: 32px;
+}
+
+.exec-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 11px;
+}
+
+.exec-summary-box,
+.exec-order-box {
+  padding: 11px;
+
+  border: 1px solid var(--dash-border);
+  border-radius: 11px;
+
+  background: #f7f9fa;
+}
+
+.exec-summary-box span,
+.exec-order-box span {
+  display: block;
+  color: var(--dash-muted);
+  font-size: 10px;
+}
+
+.exec-summary-box strong,
+.exec-order-box strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 23px;
+}
+
+.exec-orders {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+  padding: 12px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1250px) {
+  .dashboard-welcome {
+    grid-template-columns: 150px 1fr 125px;
+  }
+
+  .exec-kpis {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .dashboard-content-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .summary-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1050px) {
+  #appView > .executive-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .header-session { display: none; }
+
+  #appView .app {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .sidebar-logo { width: 125px; }
+}
+
+@media (max-width: 850px) {
+  #dashboard { padding: 14px; }
+
+  #appView > .executive-header {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  #appView .header-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+  }
+
+  #appView .app {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-welcome {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-brand,
+  .welcome-photo {
+    display: none;
+  }
+
+  .welcome-context,
+  .welcome-status {
+    display: grid;
+  }
+
+  .motorsport-live {
+    grid-template-columns: 1fr;
+  }
+
+  .motorsport-label {
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .motorsport-signature { display: none; }
+
+  .exec-kpis,
+  .dashboard-content-grid,
+  .exec-orders {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-panel {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 540px) {
+  .welcome-content h2 { font-size: 34px; }
+
+  .welcome-context > div { min-width: 0; }
+
+  .exec-kpi { min-height: 142px; }
+
+  .exec-actions,
+  .exec-summary-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motorsport-track { animation-duration: 90s; }
+  .motorsport-label i { animation: none; }
+  .exec-kpi,
+  #appView nav .nav { transition: none; }
+}
+
+/* =========================================================
+   V3.2 · AJUSTE FINO DE ESCALA
+   Se excluye deliberadamente .dashboard-welcome.
+   ========================================================= */
+
+#appView > .executive-header .header-eyebrow { font-size: 11px; }
+#appView > .executive-header .header-title h1 { font-size: 31px; }
+#appView > .executive-header .header-version { font-size: 10px; }
+#appView > .executive-header .header-title p { font-size: 12px; }
+#appView > .executive-header .header-session strong { font-size: 11px; }
+#appView > .executive-header .header-session small { font-size: 9px; }
+#appView > .executive-header .header-button { font-size: 11px; }
+
+#appView nav .sidebar-system strong { font-size: 28px; }
+#appView nav .sidebar-system span { font-size: 11px; }
+#appView nav .sidebar-section-label { font-size: 11px; }
+#appView nav .nav { font-size: 14px; }
+#appView nav .nav::before { font-size: 14px; }
+
+#dashboard .motorsport-label { font-size: 12px; }
+#dashboard .motorsport-label b { font-size: 9px; }
+#dashboard .motorsport-track span { font-size: 13px; }
+#dashboard .motorsport-signature { font-size: 9px; }
+
+#dashboard .exec-kpi-label { font-size: 13px; }
+#dashboard .exec-kpi-icon { font-size: 17px; }
+#dashboard .exec-kpi b { font-size: 30px; }
+#dashboard .exec-kpi small { font-size: 11px; }
+
+#dashboard .dashboard-content-grid .exec-panel-head small,
+#dashboard .orders-panel .exec-panel-head small { font-size: 10px; }
+
+#dashboard .dashboard-content-grid .exec-panel-head h3,
+#dashboard .orders-panel .exec-panel-head h3 { font-size: 18px; }
+
+#dashboard .dashboard-content-grid .exec-panel-head button,
+#dashboard .orders-panel .exec-panel-head button { font-size: 11px; }
+
+#dashboard .dashboard-content-grid .exec-priority-title { font-size: 12px; }
+#dashboard .dashboard-content-grid .exec-priority-item { font-size: 12px; }
+#dashboard .dashboard-content-grid .exec-action span:last-child { font-size: 13px; }
+#dashboard .dashboard-content-grid .exec-action-icon { font-size: 17px; }
+
+#dashboard .dashboard-content-grid .exec-summary-primary span,
+#dashboard .dashboard-content-grid .exec-summary-primary small { font-size: 11px; }
+
+#dashboard .dashboard-content-grid .exec-summary-primary strong { font-size: 34px; }
+
+#dashboard .dashboard-content-grid .exec-summary-box span,
+#dashboard .orders-panel .exec-order-box span { font-size: 11px; }
+
+#dashboard .dashboard-content-grid .exec-summary-box strong,
+#dashboard .orders-panel .exec-order-box strong { font-size: 25px; }
+
+@media (max-width: 850px) {
+  #appView > .executive-header .header-title h1 { font-size: 30px; }
+  #appView nav .nav { font-size: 14px; }
+}

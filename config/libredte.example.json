@@ -1,0 +1,8 @@
+{
+  "enabled": false,
+  "environment": "production",
+  "companyRut": "",
+  "apiKey": "",
+  "timeout": 10000,
+  "cacheMinutes": 1440
+}

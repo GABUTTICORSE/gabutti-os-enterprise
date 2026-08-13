@@ -1,0 +1,14 @@
+node_modules/
+config/sre.local.json
+
+# Archivos privados y locales
+.DS_Store
+config/*.local.json
+config/**/*.local.json
+database/db.json
+backups/
+*.backup_*
+AUDITORIA_GS_ONE_ETAPA_0.txt
+DASHBOARD_ACTUAL_GS_ONE.txt
+estado_*.txt
+/index.html

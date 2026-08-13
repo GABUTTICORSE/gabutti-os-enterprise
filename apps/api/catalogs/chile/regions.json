@@ -1,0 +1,82 @@
+[
+  {
+    "code": "01",
+    "name": "Tarapacá",
+    "abbreviation": "TPCA"
+  },
+  {
+    "code": "02",
+    "name": "Antofagasta",
+    "abbreviation": "ANTOF"
+  },
+  {
+    "code": "03",
+    "name": "Atacama",
+    "abbreviation": "ATCMA"
+  },
+  {
+    "code": "04",
+    "name": "Coquimbo",
+    "abbreviation": "COQ"
+  },
+  {
+    "code": "05",
+    "name": "Valparaíso",
+    "abbreviation": "VALPO"
+  },
+  {
+    "code": "06",
+    "name": "Libertador General Bernardo O'Higgins",
+    "abbreviation": "LGBO"
+  },
+  {
+    "code": "07",
+    "name": "Maule",
+    "abbreviation": "MAULE"
+  },
+  {
+    "code": "08",
+    "name": "Biobío",
+    "abbreviation": "BBIO"
+  },
+  {
+    "code": "09",
+    "name": "La Araucanía",
+    "abbreviation": "ARAUC"
+  },
+  {
+    "code": "10",
+    "name": "Los Lagos",
+    "abbreviation": "LAGOS"
+  },
+  {
+    "code": "11",
+    "name": "Aysén del General Carlos Ibáñez del Campo",
+    "abbreviation": "AYSEN"
+  },
+  {
+    "code": "12",
+    "name": "Magallanes y de la Antártica Chilena",
+    "abbreviation": "MAG"
+  },
+  {
+    "code": "13",
+    "name": "Metropolitana de Santiago",
+    "abbreviation": "RM"
+  },
+  {
+    "code": "14",
+    "name": "Los Ríos",
+    "abbreviation": "RIOS"
+  },
+  {
+    "code": "15",
+    "name": "Arica y Parinacota",
+    "abbreviation": "AyP"
+  },
+  {
+    "code": "16",
+    "name": "Ñuble",
+    "abbreviation": "NUBLE"
+  }
+]

@@ -1,0 +1,338 @@
+[
+  {
+    "code": "011",
+    "name": "Iquique",
+    "regionCode": "01",
+    "region": "Tarapacá"
+  },
+  {
+    "code": "014",
+    "name": "Tamarugal",
+    "regionCode": "01",
+    "region": "Tarapacá"
+  },
+  {
+    "code": "021",
+    "name": "Antofagasta",
+    "regionCode": "02",
+    "region": "Antofagasta"
+  },
+  {
+    "code": "022",
+    "name": "El Loa",
+    "regionCode": "02",
+    "region": "Antofagasta"
+  },
+  {
+    "code": "023",
+    "name": "Tocopilla",
+    "regionCode": "02",
+    "region": "Antofagasta"
+  },
+  {
+    "code": "031",
+    "name": "Copiapó",
+    "regionCode": "03",
+    "region": "Atacama"
+  },
+  {
+    "code": "032",
+    "name": "Chañaral",
+    "regionCode": "03",
+    "region": "Atacama"
+  },
+  {
+    "code": "033",
+    "name": "Huasco",
+    "regionCode": "03",
+    "region": "Atacama"
+  },
+  {
+    "code": "041",
+    "name": "Elqui",
+    "regionCode": "04",
+    "region": "Coquimbo"
+  },
+  {
+    "code": "042",
+    "name": "Choapa",
+    "regionCode": "04",
+    "region": "Coquimbo"
+  },
+  {
+    "code": "043",
+    "name": "Limarí",
+    "regionCode": "04",
+    "region": "Coquimbo"
+  },
+  {
+    "code": "051",
+    "name": "Valparaíso",
+    "regionCode": "05",
+    "region": "Valparaíso"
+  },
+  {
+    "code": "052",
+    "name": "Isla de Pascua",
+    "regionCode": "05",
+    "region": "Valparaíso"
+  },
+  {
+    "code": "053",
+    "name": "Los Andes",
+    "regionCode": "05",
+    "region": "Valparaíso"
+  },
+  {
+    "code": "054",
+    "name": "Petorca",
+    "regionCode": "05",
+    "region": "Valparaíso"
+  },
+  {
+    "code": "055",
+    "name": "Quillota",
+    "regionCode": "05",
+    "region": "Valparaíso"
+  },
+  {
+    "code": "056",
+    "name": "San Antonio",
+    "regionCode": "05",
+    "region": "Valparaíso"
+  },
+  {
+    "code": "057",
+    "name": "San Felipe de Aconcagua",
+    "regionCode": "05",
+    "region": "Valparaíso"
+  },
+  {
+    "code": "058",
+    "name": "Marga Marga",
+    "regionCode": "05",
+    "region": "Valparaíso"
+  },
+  {
+    "code": "061",
+    "name": "Cachapoal",
+    "regionCode": "06",
+    "region": "Libertador General Bernardo O'Higgins"
+  },
+  {
+    "code": "062",
+    "name": "Cardenal Caro",
+    "regionCode": "06",
+    "region": "Libertador General Bernardo O'Higgins"
+  },
+  {
+    "code": "063",
+    "name": "Colchagua",
+    "regionCode": "06",
+    "region": "Libertador General Bernardo O'Higgins"
+  },
+  {
+    "code": "071",
+    "name": "Talca",
+    "regionCode": "07",
+    "region": "Maule"
+  },
+  {
+    "code": "072",
+    "name": "Cauquenes",
+    "regionCode": "07",
+    "region": "Maule"
+  },
+  {
+    "code": "073",
+    "name": "Curicó",
+    "regionCode": "07",
+    "region": "Maule"
+  },
+  {
+    "code": "074",
+    "name": "Linares",
+    "regionCode": "07",
+    "region": "Maule"
+  },
+  {
+    "code": "081",
+    "name": "Concepción",
+    "regionCode": "08",
+    "region": "Biobío"
+  },
+  {
+    "code": "082",
+    "name": "Arauco",
+    "regionCode": "08",
+    "region": "Biobío"
+  },
+  {
+    "code": "083",
+    "name": "Biobío",
+    "regionCode": "08",
+    "region": "Biobío"
+  },
+  {
+    "code": "091",
+    "name": "Cautín",
+    "regionCode": "09",
+    "region": "La Araucanía"
+  },
+  {
+    "code": "092",
+    "name": "Malleco",
+    "regionCode": "09",
+    "region": "La Araucanía"
+  },
+  {
+    "code": "101",
+    "name": "Llanquihue",
+    "regionCode": "10",
+    "region": "Los Lagos"
+  },
+  {
+    "code": "102",
+    "name": "Chiloé",
+    "regionCode": "10",
+    "region": "Los Lagos"
+  },
+  {
+    "code": "103",
+    "name": "Osorno",
+    "regionCode": "10",
+    "region": "Los Lagos"
+  },
+  {
+    "code": "104",
+    "name": "Palena",
+    "regionCode": "10",
+    "region": "Los Lagos"
+  },
+  {
+    "code": "111",
+    "name": "Coyhaique",
+    "regionCode": "11",
+    "region": "Aysén del General Carlos Ibáñez del Campo"
+  },
+  {
+    "code": "112",
+    "name": "Aysén",
+    "regionCode": "11",
+    "region": "Aysén del General Carlos Ibáñez del Campo"
+  },
+  {
+    "code": "113",
+    "name": "Capitán Prat",
+    "regionCode": "11",
+    "region": "Aysén del General Carlos Ibáñez del Campo"
+  },
+  {
+    "code": "114",
+    "name": "General Carrera",
+    "regionCode": "11",
+    "region": "Aysén del General Carlos Ibáñez del Campo"
+  },
+  {
+    "code": "121",
+    "name": "Magallanes",
+    "regionCode": "12",
+    "region": "Magallanes y de la Antártica Chilena"
+  },
+  {
+    "code": "122",
+    "name": "Antártica Chilena",
+    "regionCode": "12",
+    "region": "Magallanes y de la Antártica Chilena"
+  },
+  {
+    "code": "123",
+    "name": "Tierra del Fuego",
+    "regionCode": "12",
+    "region": "Magallanes y de la Antártica Chilena"
+  },
+  {
+    "code": "124",
+    "name": "Última Esperanza",
+    "regionCode": "12",
+    "region": "Magallanes y de la Antártica Chilena"
+  },
+  {
+    "code": "131",
+    "name": "Santiago",
+    "regionCode": "13",
+    "region": "Metropolitana de Santiago"
+  },
+  {
+    "code": "132",
+    "name": "Cordillera",
+    "regionCode": "13",
+    "region": "Metropolitana de Santiago"
+  },
+  {
+    "code": "133",
+    "name": "Chacabuco",
+    "regionCode": "13",
+    "region": "Metropolitana de Santiago"
+  },
+  {
+    "code": "134",
+    "name": "Maipo",
+    "regionCode": "13",
+    "region": "Metropolitana de Santiago"
+  },
+  {
+    "code": "135",
+    "name": "Melipilla",
+    "regionCode": "13",
+    "region": "Metropolitana de Santiago"
+  },
+  {
+    "code": "136",
+    "name": "Talagante",
+    "regionCode": "13",
+    "region": "Metropolitana de Santiago"
+  },
+  {
+    "code": "141",
+    "name": "Valdivia",
+    "regionCode": "14",
+    "region": "Los Ríos"
+  },
+  {
+    "code": "142",
+    "name": "Ranco",
+    "regionCode": "14",
+    "region": "Los Ríos"
+  },
+  {
+    "code": "151",
+    "name": "Arica",
+    "regionCode": "15",
+    "region": "Arica y Parinacota"
+  },
+  {
+    "code": "152",
+    "name": "Parinacota",
+    "regionCode": "15",
+    "region": "Arica y Parinacota"
+  },
+  {
+    "code": "161",
+    "name": "Diguillín",
+    "regionCode": "16",
+    "region": "Ñuble"
+  },
+  {
+    "code": "162",
+    "name": "Itata",
+    "regionCode": "16",
+    "region": "Ñuble"
+  },
+  {
+    "code": "163",
+    "name": "Punilla",
+    "regionCode": "16",
+    "region": "Ñuble"
+  }
+]
