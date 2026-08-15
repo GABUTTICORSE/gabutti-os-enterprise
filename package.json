@@ -5,6 +5,7 @@
   "main": "index.html",
   "scripts": {
     "start": "node apps/api/server.js",
+    "start:whatsapp": "node apps/api/whatsapp_server.js",
     "lint": "eslint .",
     "lint:js": "npx eslint src",
     "lint:js:fix": "npx eslint src --fix",
