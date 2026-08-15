@@ -57,6 +57,14 @@ npm run start:whatsapp
 
 Por defecto escucha en `http://localhost:3101`. La verificación y recepción de Meta se exponen en `/webhooks/whatsapp`, y el estado básico en `/health`.
 
+Mientras Meta no esté disponible, el mismo gateway incluye un simulador local en:
+
+```text
+http://localhost:3101/simulator
+```
+
+El simulador permite ingresar nombre, teléfono y mensaje, y muestra el resultado completo de la conversión: Inbox, análisis de intención, cliente/prospecto, tarea y proceso comercial. Usa el mismo motor de automatización que procesará los mensajes reales de Meta y no envía mensajes externos.
+
 Los mensajes entrantes se guardan en Inbox y pasan por el motor de clasificación y automatización existente de GS ONE. Esta primera etapa no envía respuestas automáticas ni crea cotizaciones directamente desde el webhook.
 
 ## Validación
