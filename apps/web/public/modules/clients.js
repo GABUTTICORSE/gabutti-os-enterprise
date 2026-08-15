@@ -1,7 +1,25 @@
-/* GS ONE v0.6.1 · Ficha Cliente v1.0 */
+/* GS ONE v0.8.2 · Ficha Cliente · WhatsApp v1 */
 function esc(v=''){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 function clientById(id){return (state.clients||[]).find(x=>x.id===id);}
 function clientMatches(x,c){return x&&(x.clientId===c.id||(x.clientName||'').toLowerCase()===(c.name||'').toLowerCase());}
+function normalizeWhatsAppNumber(value=''){
+ const digits=String(value||'').replace(/\D/g,'');
+ if(!digits)return '';
+ if(digits.startsWith('56'))return digits;
+ if(digits.length===9)return '56'+digits;
+ if(digits.startsWith('0'))return '56'+digits.slice(1);
+ return digits;
+}
+function openClientWhatsApp(id){
+ const c=clientById(id);if(!c)return;
+ const phone=normalizeWhatsAppNumber(c.whatsapp||c.phone||'');
+ if(!phone)return alert('Este cliente no tiene un número de WhatsApp registrado.');
+ const name=c.name||c.businessName||'';
+ const firstName=String(name).trim().split(/\s+/)[0]||'';
+ const greeting=firstName?`Hola ${firstName},`:'Hola,';
+ const message=`${greeting}\n\nTe contactamos desde Gabutti Corse. ¿Cómo podemos ayudarte?`;
+ window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`,'_blank','noopener,noreferrer');
+}
 function localClientMetrics(c){
  const orders=(state.sales_orders||[]).filter(x=>clientMatches(x,c)), quotes=(state.quotes||[]).filter(x=>clientMatches(x,c)), fin=(state.finance||[]).filter(x=>clientMatches(x,c));
  const now=Date.now(), after=n=>now-n*86400000, o30=orders.filter(x=>new Date(x.createdAt||0)>=after(30)).length, o90=orders.filter(x=>new Date(x.createdAt||0)>=after(90)).length;
@@ -17,8 +35,9 @@ async function showClientProfile(id){
 function renderClientShell(c,i){
  const color=(i.relationship||'Sin evaluar').toLowerCase().replace('sin evaluar','gray');
  const executive=currentUser?.role==='Executive';
+ const whatsappButton=c.whatsapp?`<button class="secondary" onclick="openClientWhatsApp('${esc(c.id)}')">WhatsApp</button>`:'';
  return `<div class="client-v1">
-  <div class="client-v1-header"><div><div class="client-code">${esc(c.number||'CLI-PENDIENTE')}</div><h2>${esc(c.name||c.businessName||'Cliente')}</h2><p>${esc(c.rut||'-')} · ${esc(c.clientType||'-')} · Ejecutivo: ${esc(c.owner||'-')}</p></div><div class="client-v1-actions"><button onclick="openForm('clients','${esc(c.id)}')">Editar</button>${executive?`<button class="secondary" onclick="refreshClientRut('${esc(c.id)}','${esc(c.rut)}')">Actualizar desde SRE</button>`:''}<button class="secondary" onclick="generateQuoteFromClient('${esc(c.id)}')">Cotizar</button></div></div>
+  <div class="client-v1-header"><div><div class="client-code">${esc(c.number||'CLI-PENDIENTE')}</div><h2>${esc(c.name||c.businessName||'Cliente')}</h2><p>${esc(c.rut||'-')} · ${esc(c.clientType||'-')} · Ejecutivo: ${esc(c.owner||'-')}</p></div><div class="client-v1-actions"><button onclick="openForm('clients','${esc(c.id)}')">Editar</button>${executive?`<button class="secondary" onclick="refreshClientRut('${esc(c.id)}','${esc(c.rut)}')">Actualizar desde SRE</button>`:''}${whatsappButton}<button class="secondary" onclick="generateQuoteFromClient('${esc(c.id)}')">Cotizar</button></div></div>
   <div class="client-summary-grid">
    ${metric('Clasificación',i.classification,'ABC automático')}${metric('Puntaje',i.score+'/100',i.trend)}${metric('Relación',i.relationship,'Evaluación integral',color)}${metric('Compras 90 días',i.purchases90,'Últimos 3 meses')}${metric('Pagos',i.paymentScore+'%','Cumplimiento')}${metric('Compras 12 meses',money(i.total12m),'Volumen acumulado')}
   </div>
