@@ -18,6 +18,13 @@ const CATEGORY_RULES = [
     ]
   },
   {
+    name: 'Guantes',
+    patterns: [
+      /\bguante(?:s)?\b/i,
+      /\bglove(?:s)?\b/i
+    ]
+  },
+  {
     name: 'Butaca',
     patterns: [
       /\bbutaca\b/i,
@@ -104,6 +111,8 @@ const INTENT_RULES = [
     patterns: [
       /\btienen stock\b/i,
       /\bhay stock\b/i,
+      /\ben stock\b/i,
+      /\bstock\b/i,
       /\bdisponible\b/i,
       /\bdisponibilidad\b/i
     ]
@@ -161,7 +170,7 @@ function detectSize(text){
 
 function detectQuantity(text){
   const patterns = [
-    /\b(\d+)\s*(?:unidad|unidades|casco|cascos|butaca|butacas|arn[eé]s|llanta|llantas)\b/i,
+    /\b(\d+)\s*(?:unidad|unidades|casco|cascos|guante|guantes|butaca|butacas|arn[eé]s|llanta|llantas)\b/i,
     /\bcantidad\s*[:\-]?\s*(\d+)\b/i
   ];
 
@@ -192,6 +201,7 @@ function detectProduct(text, brand, category){
   if(category){
     const categoryWords = {
       Casco: /\bcasco\b/i,
+      Guantes: /\bguante(?:s)?\b/i,
       Butaca: /\bbutaca\b/i,
       Arnés: /\barn[eé]s\b/i,
       Volante: /\bvolante\b/i,
