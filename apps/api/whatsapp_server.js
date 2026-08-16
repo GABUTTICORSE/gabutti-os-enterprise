@@ -229,6 +229,12 @@ app.get('/webhooks/whatsapp', (req, res) => {
   const { verifyToken } = readConfig();
   const verification = verifyWebhookChallenge(req.query, verifyToken);
 
+  console.log('[WA WEBHOOK] GET verification', {
+    ok: verification.ok,
+    mode: req.query['hub.mode'] || '',
+    hasChallenge: !!req.query['hub.challenge']
+  });
+
   if (!verification.ok) {
     return res.status(403).send('Forbidden');
   }
@@ -244,7 +250,17 @@ app.post(
     const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
     const signature = String(req.get('x-hub-signature-256') || '');
 
-    if (!verifyMetaSignature(rawBody, signature, config.appSecret)) {
+    console.log('[WA WEBHOOK] POST received', {
+      bytes: rawBody.length,
+      hasSignature: !!signature,
+      contentType: req.get('content-type') || '',
+      userAgent: req.get('user-agent') || ''
+    });
+
+    const signatureOk = verifyMetaSignature(rawBody, signature, config.appSecret);
+    console.log('[WA WEBHOOK] signature', { ok: signatureOk });
+
+    if (!signatureOk) {
       return res.status(401).json({ error: 'Firma de Meta inválida.' });
     }
 
@@ -252,10 +268,16 @@ app.post(
     try {
       payload = JSON.parse(rawBody.toString('utf8') || '{}');
     } catch {
+      console.log('[WA WEBHOOK] invalid JSON');
       return res.status(400).json({ error: 'Payload JSON inválido.' });
     }
 
     const inboundMessages = extractInboundMessages(payload);
+    console.log('[WA WEBHOOK] parsed', {
+      object: payload.object || '',
+      entries: Array.isArray(payload.entry) ? payload.entry.length : 0,
+      inboundMessages: inboundMessages.length
+    });
 
     if (!inboundMessages.length) {
       return res.status(200).json({ ok: true, received: 0 });
@@ -264,6 +286,12 @@ app.post(
     const db = readDB();
     const results = inboundMessages.map(inbound => createInboxItem(db, inbound));
     writeDB(db);
+
+    console.log('[WA WEBHOOK] stored', {
+      received: results.filter(result => !result.duplicate).length,
+      duplicates: results.filter(result => result.duplicate).length,
+      inboxIds: results.map(result => result.item.id)
+    });
 
     return res.status(200).json({
       ok: true,
