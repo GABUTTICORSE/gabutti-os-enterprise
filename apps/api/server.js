@@ -5,6 +5,7 @@ const {
   runCreationAutomations
 } = require('./automation');
 const { createRecord } = require("./crud");
+const { sendTextMessage } = require('./integrations/whatsapp/whatsapp.client');
 const { readDB, writeDB } = require('./database');
 const { nextNumber } = require('./numbers');
 
@@ -427,6 +428,71 @@ if(c==='rut-lookup' && req.method==='GET'){
   }
   if(c==='db'&&req.method==='GET'){const safeDb={...db,users:(db.users||[]).map(sanitizeUser)};return js(res,200,safeDb);}
   if(c==='demo'&&req.method==='POST'){db=demo(authUser);writeDB(db);return js(res,200,{ok:true})}
+  if(c==='whatsapp-send' && req.method==='POST'){
+  const inbox = (db.inbox || []).find(item => item.id === id);
+
+  if(!inbox){
+    return js(res,404,{error:'Entrada de Inbox no encontrada.'});
+  }
+
+  const requestBody = await body(req);
+  const message = String(requestBody.message || '').trim();
+
+  if(!message){
+    return js(res,400,{error:'El mensaje no puede estar vacío.'});
+  }
+
+  if(!inbox.whatsapp){
+    return js(res,400,{error:'La entrada no tiene número de WhatsApp.'});
+  }
+
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN || '';
+  const phoneNumberId =
+    process.env.WHATSAPP_PHONE_NUMBER_ID ||
+    inbox.phoneNumberId ||
+    '';
+
+  try{
+    const result = await sendTextMessage({
+      accessToken,
+      phoneNumberId,
+      to: inbox.whatsapp,
+      text: message
+    });
+
+    db.activity = db.activity || [];
+    db.activity.unshift({
+      id: uid('act'),
+      at: new Date().toISOString(),
+      action: 'whatsapp_outbound',
+      entity: 'inbox',
+      detail:
+        `Mensaje enviado por ${authUser.name} a ${inbox.whatsapp} ` +
+        `desde ${inbox.id} · ${result.messageId || 'sin messageId'}`
+    });
+
+    inbox.lastWhatsappReplyAt = new Date().toISOString();
+    inbox.lastWhatsappReplyBy = authUser.name;
+    inbox.lastWhatsappReplyMessage = message;
+    inbox.lastWhatsappMessageId = result.messageId || '';
+
+    writeDB(db);
+
+    return js(res,200,{
+      ok:true,
+      messageId:result.messageId || '',
+      recipient:result.recipient
+    });
+
+  }catch(error){
+    console.error('WhatsApp outbound error:', error);
+
+    return js(res,error.status || 500,{
+      error:error.message || 'No fue posible enviar el WhatsApp.',
+      detail:error.response || null
+    });
+  }
+}
   if(!cols.includes(c))return js(res,404,{error:'not found'});
   if(req.method==='GET')return js(res,200,id?(db[c].find(x=>x.id===id)||{}):db[c]);
   if(req.method==='PUT'){

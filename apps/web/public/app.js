@@ -182,7 +182,60 @@ async function processInbox(inboxId) {
   }
 }
 
+async function replyWhatsApp(inboxId) {
+  const inbox = (state.inbox || []).find(
+    item => item.id === inboxId
+  );
 
+  if (!inbox) {
+    alert('No se encontró la entrada del Inbox.');
+    return;
+  }
+
+  if (!inbox.whatsapp) {
+    alert('Esta entrada no tiene número de WhatsApp.');
+    return;
+  }
+
+  const message = prompt(
+    `Responder por WhatsApp a ${inbox.sender || inbox.whatsapp}:`
+  );
+
+  if (!message || !message.trim()) {
+    return;
+  }
+
+  try {
+    const result = await api(
+      `/api/whatsapp-send/${inbox.id}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          message: message.trim()
+        })
+      }
+    );
+
+    if (result.error) {
+      throw new Error(result.error);
+    }
+
+    alert('Mensaje enviado por WhatsApp correctamente.');
+
+    await loadAll();
+
+  } catch (error) {
+    console.error(
+      'Error enviando WhatsApp:',
+      error
+    );
+
+    alert(
+      error.message ||
+      'No fue posible enviar el mensaje por WhatsApp.'
+    );
+  }
+}
 /* =========================================================
    ESQUEMAS DE FORMULARIOS
    ========================================================= */
@@ -1030,7 +1083,24 @@ function renderLists() {
                     ? 'Procesado'
                     : 'Procesar'
                 }
-              </button>
+              </button>              
+
+               ${
+                String(inbox.source || '').includes('WhatsApp') &&
+                inbox.whatsapp
+                  ? `
+                    <button
+                      type="button"
+                      class="secondary compact"
+                      onclick="replyWhatsApp('${inbox.id}')"
+                      style="margin-left:8px"
+                    >
+                      Responder por WhatsApp
+                    </button>
+                  `
+                  : ''
+              }
+
             </div>
           </div>
         `;
