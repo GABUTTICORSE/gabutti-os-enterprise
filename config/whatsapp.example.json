@@ -1,0 +1,4 @@
+{
+  "verifyToken": "define-un-token-de-verificacion-largo-y-privado",
+  "appSecret": "app-secret-de-meta-solo-en-whatsapp.local.json"
+}

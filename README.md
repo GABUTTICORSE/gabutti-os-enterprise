@@ -17,6 +17,7 @@ Los siguientes archivos son locales y no se publican en GitHub:
 - `database/db.json`
 - `config/sre.local.json`
 - `config/libredte.local.json`
+- `config/whatsapp.local.json`
 - cualquier otro `*.local.json`
 
 Para restaurar una instalación existente, copia tu respaldo privado a esas ubicaciones antes de iniciar GS ONE.
@@ -41,6 +42,30 @@ Copia `config/libredte.example.json` como `config/libredte.local.json` y complet
 ## SRE
 
 La integración acepta el token mediante `SRE_API_TOKEN` o mediante `config/sre.local.json`. Ambos mecanismos deben mantenerse fuera de Git.
+
+## WhatsApp Inbound
+
+Copia `config/whatsapp.example.json` como `config/whatsapp.local.json` y completa `verifyToken` y `appSecret` con los datos de la aplicación de Meta. El archivo local queda excluido de Git.
+
+También puedes usar las variables de entorno `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` y opcionalmente `WHATSAPP_PORT`.
+
+Inicia el gateway de entrada con:
+
+```bash
+npm run start:whatsapp
+```
+
+Por defecto escucha en `http://localhost:3101`. La verificación y recepción de Meta se exponen en `/webhooks/whatsapp`, y el estado básico en `/health`.
+
+Mientras Meta no esté disponible, el mismo gateway incluye un simulador local en:
+
+```text
+http://localhost:3101/simulator
+```
+
+El simulador permite ingresar nombre, teléfono y mensaje, y muestra el resultado completo de la conversión: Inbox, análisis de intención, cliente/prospecto, tarea y proceso comercial. Usa el mismo motor de automatización que procesará los mensajes reales de Meta y no envía mensajes externos.
+
+Los mensajes entrantes se guardan en Inbox y pasan por el motor de clasificación y automatización existente de GS ONE. Esta primera etapa no envía respuestas automáticas ni crea cotizaciones directamente desde el webhook.
 
 ## Validación
 
