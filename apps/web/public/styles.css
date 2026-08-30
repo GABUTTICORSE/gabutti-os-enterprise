@@ -450,3 +450,928 @@ background:#b70000;
 
 /* GS ONE v0.7.0 · Diagnóstico visible */
 .operation-status{margin:0 0 18px;padding:14px 16px;border-radius:12px;border:1px solid #b7dfc2;background:#eefaf1;color:#174d27;display:flex;align-items:center;justify-content:space-between;gap:12px}.operation-status.error{border-color:#efb3b3;background:#fff1f1;color:#7d1e1e}.operation-status.warning{border-color:#ead18d;background:#fff9e8;color:#6a4b00}.operation-status.hidden{display:none}.diagnostic-panel{margin-top:16px;border:1px dashed #9ba6b2;background:#f7f9fb}.diagnostic-panel summary{font-weight:700}.diagnostic-actions{display:flex;gap:8px;margin:10px 0}.diagnostic-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.diagnostic-grid pre{white-space:pre-wrap;word-break:break-word;max-height:260px;overflow:auto;background:#111820;color:#e8f0f7;padding:12px;border-radius:8px;font-size:12px;line-height:1.45}.diagnostic-grid .span-2{grid-column:span 2}@media(max-width:800px){.diagnostic-grid{grid-template-columns:1fr}.diagnostic-grid .span-2{grid-column:span 1}}
+
+
+/* GS ONE CLIENT FORM V2 */
+
+.client-form-head-v2 {
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.client-head-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.client-head-meta span {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eef2f4;
+  color: #66737b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.client-section {
+  margin: 14px 0;
+  overflow: hidden;
+
+  border: 1px solid #dbe2e7;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.client-section-primary {
+  border-color: #ccd7dd;
+}
+
+.client-section-head {
+  padding: 17px 20px 0;
+}
+
+.client-section-head > div {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.client-section-head h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.client-section-head p {
+  margin: 3px 0 0;
+  color: #6d7880;
+  font-size: 12px;
+}
+
+.client-step {
+  display: grid;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+
+  place-items: center;
+
+  border-radius: 8px;
+  color: #c8102e;
+  background: rgba(200,16,46,.08);
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.client-section > .form-grid {
+  padding: 18px 20px 20px;
+}
+
+.client-section summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 16px 20px;
+
+  cursor: pointer;
+  list-style: none;
+
+  background: #f7f9fa;
+}
+
+.client-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.client-summary-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.client-summary-copy strong {
+  font-size: 15px;
+}
+
+.client-summary-copy small {
+  color: #6d7880;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.client-plus {
+  display: grid;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+
+  place-items: center;
+
+  border-radius: 50%;
+  color: #c8102e;
+  background: rgba(200,16,46,.08);
+
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 500;
+}
+
+.client-optional-section:not([open]) summary:hover {
+  background: #f2f5f6;
+}
+
+.client-optional-section[open] .client-plus {
+  transform: rotate(45deg);
+}
+
+.client-tax-section summary {
+  border-bottom: 1px solid transparent;
+}
+
+.client-tax-section[open] summary,
+.client-optional-section[open] summary {
+  border-bottom-color: #dbe2e7;
+}
+
+.client-section .copy-panel {
+  margin: 16px 20px 0;
+  border-radius: 12px;
+}
+
+.client-tax-grid {
+  background: #fcfdfd;
+}
+
+@media (max-width: 760px) {
+  .client-section-head {
+    padding: 15px 15px 0;
+  }
+
+  .client-section > .form-grid {
+    padding: 15px;
+  }
+
+  .client-section summary {
+    padding: 14px 15px;
+  }
+
+  .client-section .copy-panel {
+    margin: 14px 15px 0;
+  }
+}
+
+
+/* =========================================================
+   GS ONE · SALIDAS A TERRENO PREVIEW V1
+   ========================================================= */
+
+.fieldtrip-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.fieldtrip-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.fieldtrip-head h2 {
+  margin: 2px 0 5px;
+}
+
+.fieldtrip-primary {
+  white-space: nowrap;
+}
+
+.fieldtrip-main-card,
+.fieldtrip-card,
+.fieldtrip-budget,
+.fieldtrip-alerts {
+  border: 1px solid #dce3e7;
+  background: #fff;
+  border-radius: 17px;
+}
+
+.fieldtrip-main-card {
+  padding: 22px 24px;
+}
+
+.fieldtrip-main-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.fieldtrip-kicker {
+  color: #8b969c;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.fieldtrip-main-card h3 {
+  margin: 7px 0 4px;
+  font-size: 23px;
+}
+
+.fieldtrip-destination {
+  color: #5f6a71;
+  font-size: 14px;
+}
+
+.fieldtrip-date {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.fieldtrip-date span {
+  margin: 0 8px;
+  color: #c8102e;
+}
+
+.fieldtrip-people {
+  margin-top: 7px;
+  color: #727d83;
+  font-size: 12px;
+}
+
+.fieldtrip-status {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .05em;
+}
+
+.fieldtrip-status.yellow {
+  color: #8a6500;
+  background: #fff3c4;
+}
+
+.fieldtrip-progress-head {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+  color: #616c72;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.fieldtrip-progress-head strong {
+  color: #171b1e;
+  font-size: 13px;
+}
+
+.fieldtrip-progress {
+  height: 9px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf1f3;
+}
+
+.fieldtrip-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #c8102e;
+}
+
+.fieldtrip-summary {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 17px;
+}
+
+.fieldtrip-summary > div {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.fieldtrip-summary strong {
+  font-size: 18px;
+}
+
+.fieldtrip-summary span {
+  color: #707a80;
+  font-size: 11px;
+}
+
+.fieldtrip-summary .ok strong {
+  color: #1d7a46;
+}
+
+.fieldtrip-summary .pending strong {
+  color: #b47d00;
+}
+
+.fieldtrip-summary .critical strong {
+  color: #c8102e;
+}
+
+.fieldtrip-summary button {
+  margin-left: auto;
+}
+
+.fieldtrip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.fieldtrip-card {
+  padding: 16px 17px;
+}
+
+.fieldtrip-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 13px;
+}
+
+.fieldtrip-card-head span {
+  color: #59646b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .05em;
+}
+
+.fieldtrip-card-head strong {
+  color: #1f2528;
+  font-size: 13px;
+}
+
+.fieldtrip-card label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  color: #4e585e;
+  font-size: 12px;
+}
+
+.fieldtrip-card input {
+  width: 14px;
+  height: 14px;
+}
+
+.fieldtrip-card label.critical {
+  color: #b8102b;
+  font-weight: 700;
+}
+
+.fieldtrip-card label.pending {
+  color: #8b6700;
+}
+
+.fieldtrip-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 14px;
+}
+
+.fieldtrip-budget,
+.fieldtrip-alerts {
+  padding: 18px 20px;
+}
+
+.fieldtrip-section-title {
+  margin-bottom: 15px;
+  color: #5c676d;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .055em;
+}
+
+.fieldtrip-money {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #edf0f2;
+  color: #69747a;
+  font-size: 12px;
+}
+
+.fieldtrip-money strong {
+  color: #24292c;
+}
+
+.fieldtrip-money.available strong {
+  color: #1d7a46;
+}
+
+.fieldtrip-render {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 13px;
+  color: #6b757b;
+  font-size: 11px;
+}
+
+.fieldtrip-render strong {
+  color: #b47d00;
+}
+
+.fieldtrip-alert {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 0;
+  color: #59646a;
+  font-size: 12px;
+}
+
+.fieldtrip-alert span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.fieldtrip-alert.critical span {
+  background: #c8102e;
+}
+
+.fieldtrip-alert.pending span {
+  background: #d5a000;
+}
+
+.fieldtrip-alert-total {
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid #edf0f2;
+  color: #c8102e;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: right;
+}
+
+@media (max-width: 1100px) {
+  .fieldtrip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .fieldtrip-head,
+  .fieldtrip-main-top,
+  .fieldtrip-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fieldtrip-grid,
+  .fieldtrip-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fieldtrip-summary button {
+    margin-left: 0;
+  }
+}
+
+/* =========================================================
+   PROCESO COMERCIAL · ACCIONES NEUTRAS
+   Los colores rojo / amarillo / verde quedan reservados
+   para estados, alertas y urgencias.
+   ========================================================= */
+
+#commercial_processes .quick-actions button {
+  background: #252c31;
+  color: #ffffff;
+  border: 1px solid #343d43;
+  box-shadow: none;
+}
+
+#commercial_processes .quick-actions button:hover {
+  background: #11171b;
+  transform: translateY(-1px);
+}
+
+#commercial_processes .quick-actions button:active {
+  transform: translateY(0);
+}
+
+/* Acción comercial principal */
+#commercial_processes .quick-actions button:first-child {
+  background: #30383e;
+  border-color: #465159;
+}
+
+
+/* =========================================================
+   GS ONE · SEMAFORO COMERCIAL INTENSO
+   ========================================================= */
+
+.commercial-urgency {
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+
+.commercial-urgency .urgency-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.commercial-urgency.urgency-red {
+  background: #ff1744;
+  border: 2px solid #d50000;
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(255, 23, 68, .30);
+}
+
+.commercial-urgency.urgency-red .urgency-label {
+  background: rgba(0,0,0,.18);
+  color: #ffffff;
+}
+
+.commercial-urgency.urgency-yellow {
+  background: #ffea00;
+  border: 2px solid #ffd600;
+  color: #171717;
+  box-shadow: 0 0 18px rgba(255, 234, 0, .30);
+}
+
+.commercial-urgency.urgency-yellow .urgency-label {
+  background: rgba(0,0,0,.10);
+  color: #171717;
+}
+
+.commercial-urgency.urgency-green {
+  background: #39ff14;
+  border: 2px solid #16d900;
+  color: #071007;
+  box-shadow: 0 0 18px rgba(57, 255, 20, .28);
+}
+
+.commercial-urgency.urgency-green .urgency-label {
+  background: rgba(0,0,0,.10);
+  color: #071007;
+}
+
+.commercial-urgency.urgency-blue {
+  background: #e5e7eb;
+  border: 2px solid #cbd0d6;
+  color: #30363b;
+}
+
+.commercial-urgency.urgency-blue .urgency-label {
+  background: rgba(0,0,0,.08);
+  color: #30363b;
+}
+
+/* =========================================================
+   GS ONE · DASHBOARD SEMAFORO OPERACIONAL 3 ESTADOS
+   ========================================================= */
+
+#operationalSemaphore .semaphore-items {
+  flex: 1;
+  min-width: 0;
+}
+
+#operationalSemaphore .semaphore-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+#operationalSemaphore .semaphore-column {
+  min-width: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #d8dde1;
+  background: #f7f8f9;
+}
+
+#operationalSemaphore .semaphore-column-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+#operationalSemaphore .semaphore-column-head > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+#operationalSemaphore .semaphore-column-head small {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+#operationalSemaphore .semaphore-column-head strong {
+  font-size: 20px;
+  font-weight: 950;
+}
+
+#operationalSemaphore .semaphore-column-light {
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  border-radius: 50%;
+}
+
+/* ROJO */
+
+#operationalSemaphore .semaphore-column.critical {
+  border-color: #ff1744;
+}
+
+#operationalSemaphore .semaphore-column.critical
+.semaphore-column-head {
+  background: #ff1744;
+  color: #fff;
+}
+
+#operationalSemaphore .semaphore-column.critical
+.semaphore-column-light {
+  background: #fff;
+  box-shadow: 0 0 10px rgba(255,255,255,.9);
+}
+
+/* AMARILLO */
+
+#operationalSemaphore .semaphore-column.attention {
+  border-color: #ffd600;
+}
+
+#operationalSemaphore .semaphore-column.attention
+.semaphore-column-head {
+  background: #ffea00;
+  color: #151515;
+}
+
+#operationalSemaphore .semaphore-column.attention
+.semaphore-column-light {
+  background: #151515;
+}
+
+/* VERDE */
+
+#operationalSemaphore .semaphore-column.ok {
+  border-color: #16d900;
+}
+
+#operationalSemaphore .semaphore-column.ok
+.semaphore-column-head {
+  background: #39ff14;
+  color: #071007;
+}
+
+#operationalSemaphore .semaphore-column.ok
+.semaphore-column-light {
+  background: #071007;
+}
+
+/* LISTAS */
+
+#operationalSemaphore .semaphore-column-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  min-height: 72px;
+}
+
+/* IMPORTANTE:
+   anulamos el button global rojo de GS ONE */
+
+#operationalSemaphore button.semaphore-card {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+
+  padding: 9px 10px;
+
+  border-radius: 9px;
+  border: 1px solid #d9dde0;
+
+  background: #ffffff;
+  color: #20262b;
+
+  text-align: left;
+  box-shadow: none;
+  transform: none;
+
+  cursor: pointer;
+}
+
+#operationalSemaphore button.semaphore-card:hover {
+  background: #f1f3f4;
+  transform: translateY(-1px);
+}
+
+#operationalSemaphore button.semaphore-card.critical {
+  border-left: 5px solid #ff1744;
+}
+
+#operationalSemaphore button.semaphore-card.attention {
+  border-left: 5px solid #ffd600;
+}
+
+#operationalSemaphore button.semaphore-card.ok {
+  border-left: 5px solid #16d900;
+}
+
+#operationalSemaphore .semaphore-card-dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+}
+
+#operationalSemaphore .semaphore-card.critical
+.semaphore-card-dot {
+  background: #ff1744;
+}
+
+#operationalSemaphore .semaphore-card.attention
+.semaphore-card-dot {
+  background: #ffd600;
+}
+
+#operationalSemaphore .semaphore-card.ok
+.semaphore-card-dot {
+  background: #16d900;
+}
+
+#operationalSemaphore .semaphore-card-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#operationalSemaphore .semaphore-card-body strong {
+  color: #20262b;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+#operationalSemaphore .semaphore-card-body small {
+  color: #5d6870;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+#operationalSemaphore .semaphore-card-body em {
+  color: #7a8389;
+  font-size: 10px;
+  font-style: normal;
+}
+
+#operationalSemaphore .semaphore-empty {
+  padding: 12px 8px;
+  color: #7b858c;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  #operationalSemaphore .semaphore-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* GS ONE · CONTROL OPERACIONAL LIMPIO */
+#operationalSemaphore .semaphore-message {
+  display: none !important;
+}
+
+
+/* =========================================================
+   GS ONE · CONTROL OPERACIONAL · LAYOUT HORIZONTAL FINAL
+   ========================================================= */
+
+#operationalSemaphore {
+  display: block !important;
+  padding: 24px 28px !important;
+}
+
+/* Titulo arriba */
+
+#operationalSemaphore .semaphore-state {
+  width: 100% !important;
+  margin: 0 0 18px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+#operationalSemaphore .semaphore-state small {
+  display: block;
+}
+
+#operationalSemaphore #semaphoreStatus {
+  display: block;
+}
+
+/* Tablero ocupa todo el ancho */
+
+#operationalSemaphore .semaphore-items {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+#operationalSemaphore .semaphore-board {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+  align-items: start !important;
+}
+
+/* Las columnas solo miden lo que necesitan */
+
+#operationalSemaphore .semaphore-column {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  align-self: start !important;
+}
+
+/* Cabecera más ejecutiva */
+
+#operationalSemaphore .semaphore-column-head {
+  min-height: 52px;
+  padding: 11px 16px !important;
+}
+
+/* Contenido */
+
+#operationalSemaphore .semaphore-column-list {
+  min-height: 70px !important;
+  height: auto !important;
+  padding: 10px !important;
+}
+
+/* Tarjetas horizontales */
+
+#operationalSemaphore button.semaphore-card {
+  min-height: 68px;
+  padding: 11px 13px !important;
+}
+
+#operationalSemaphore .semaphore-card-body strong {
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+}
+
+#operationalSemaphore .semaphore-card-body small {
+  font-size: 11px !important;
+}
+
+#operationalSemaphore .semaphore-card-body em {
+  font-size: 11px !important;
+}
+
+/* No estirar columnas vacias */
+
+#operationalSemaphore .semaphore-empty {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  #operationalSemaphore .semaphore-board {
+    grid-template-columns: 1fr !important;
+  }
+}
+

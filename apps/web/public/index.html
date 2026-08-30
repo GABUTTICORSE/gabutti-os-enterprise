@@ -10,7 +10,7 @@
   class="login-logo"
 >
 <span class="login-version">DASHBOARD V3 · v0.8.2</span><h1>GS ONE</h1><p>Founder Company · Gabutti Corse</p><form id="loginForm"><label>Email</label><input name="email" type="email" autocomplete="username"><label>Contraseña</label><input name="password" type="password" autocomplete="current-password"><button>Entrar</button></form><small>Acceso mediante credenciales locales protegidas</small></div></section>
-<section id="appView" class="hidden"><header class="executive-header"><div class="header-title"><span class="header-eyebrow">GABUTTI CORSE · OPERATING SYSTEM</span><div class="header-title-line"><h1>GS ONE</h1><span class="header-version">V3</span></div><p id="userInfo">Centro ejecutivo de dirección y operaciones</p></div><div class="header-session"><span class="header-session-dot"></span><div><strong>Operación activa</strong><small>Información sincronizada</small></div></div><div class="top header-actions"><button class="header-button" onclick="loadDemo()">Cargar demo</button><button class="secondary header-button" onclick="exportDB()">Exportar DB</button><button class="danger header-button header-exit" onclick="logout()">Salir</button></div></header>
+<section id="appView" class="hidden"><header class="executive-header"><div class="header-title"><span class="header-eyebrow">GABUTTI CORSE · OPERATING SYSTEM</span><div class="header-title-line"><h1>GS ONE</h1><span class="header-version">V3</span></div><p id="userInfo">Centro ejecutivo de dirección y operaciones</p></div><div class="header-session"><span class="header-session-dot"></span><div><strong>Operación activa</strong><small>Información sincronizada</small></div></div><div class="top header-actions"><button class="secondary header-button" onclick="exportDB()">Exportar DB</button><button class="danger header-button header-exit" onclick="logout()">Salir</button></div></header>
 <div class="app"><nav>
 <div class="sidebar-brand">
   <img
@@ -25,7 +25,7 @@
   </div>
 </div>
 <span class="sidebar-section-label">Dirección</span>
-<button class="nav active" data-view="dashboard">Centro de Dirección</button><button class="nav" data-view="inbox">Inbox</button><button class="nav" data-view="tasks">Tareas</button>
+<button class="nav active" data-view="dashboard">Centro de Dirección</button><button class="nav" data-view="field_trips">Salidas a terreno</button><button class="nav" data-view="inbox">Inbox</button><button class="nav" data-view="tasks">Tareas</button>
 <span class="sidebar-section-label">Comercial</span>
 <button class="nav" data-view="clients">Clientes</button><button class="nav" data-view="commercial_processes">Procesos Comerciales</button><button class="nav" data-view="quotes">Cotizaciones</button><button class="nav" data-view="sales_orders">Pedidos de Venta</button>
 <span class="sidebar-section-label">Operaciones</span>
@@ -61,23 +61,100 @@
           <strong id="dashboardUser">Andrea</strong>
         </h2>
 
-        <div class="welcome-context">
-          <div>
-            <b id="dashboardTime">--:--:--</b>
-            <span id="dashboardDate">Cargando fecha...</span>
+        <div class="welcome-context welcome-context-premium">
+
+          <div class="dashboard-chrono dashboard-chrono-sport">
+
+            <div class="sport-watch" aria-label="Reloj local">
+              <div class="sport-watch-face">
+
+                <div class="sport-watch-brand">
+                  <strong>GS <i>ONE</i></strong>
+                  <small>CHRONOGRAPH</small>
+                </div>
+
+                <div class="sport-subdial sport-subdial-left">
+                  <span>30</span>
+                  <i></i>
+                </div>
+
+                <div class="sport-subdial sport-subdial-right">
+                  <span>60</span>
+                  <i></i>
+                </div>
+
+                <span
+                  id="dashboardHourHand"
+                  class="sport-hand sport-hour"
+                ></span>
+
+                <span
+                  id="dashboardMinuteHand"
+                  class="sport-hand sport-minute"
+                ></span>
+
+                <span
+                  id="dashboardChronoHand"
+                  class="sport-hand sport-second"
+                ></span>
+
+                <span class="sport-watch-center"></span>
+
+                <div
+                  id="gtDigitalClock"
+                  class="sport-watch-digital"
+                >--:--:--</div>
+
+              </div>
+            </div>
+
+            <div class="chrono-info">
+              <small>HORA LOCAL</small>
+              <b id="dashboardTime">--:--:--</b>
+              <span id="dashboardDate">Cargando fecha...</span>
+            </div>
+
           </div>
 
-          <div>
-            <b id="weatherLocation">Detectando ubicación...</b>
-            <span id="weatherTemperature">
-              Consultando clima local...
-            </span>
+<div class="dashboard-weather">
+            <div class="weather-primary">
+              <div
+                id="weatherIcon"
+                class="weather-icon"
+                aria-hidden="true"
+              >●</div>
+
+              <div class="weather-copy">
+                <small id="weatherRegion">CLIMA LOCAL</small>
+
+                <b id="weatherLocation">
+                  Detectando ubicación...
+                </b>
+
+                <div class="weather-temperature-row">
+                  <strong id="weatherTempMain">--°C</strong>
+
+                  <span id="weatherTemperature">
+                    Consultando clima local...
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="weather-details">
+              <span>
+                Viento
+                <b id="weatherWind">--</b>
+              </span>
+
+              <span>
+                Humedad
+                <b id="weatherHumidity">--</b>
+              </span>
+            </div>
           </div>
+
         </div>
-
-        <p id="executiveBriefing">
-          Analizando el estado actual de la operación...
-        </p>
 
         <div class="welcome-status">
           <div class="status-pill status-critical">
@@ -133,120 +210,41 @@
       <div class="motorsport-signature">GS ONE PADDOCK</div>
     </section>
 
-    <section class="exec-kpis">
+    <section
+      id="operationalSemaphore"
+      class="operational-semaphore is-ok"
+    >
+      <div class="semaphore-state">
+        <span
+          id="semaphoreLight"
+          class="semaphore-light"
+          aria-hidden="true"
+        ></span>
 
-      <button
-        class="exec-kpi red"
-        onclick="activateView('commercial_processes')"
-      >
-        <div class="exec-kpi-top">
-          <div class="exec-kpi-icon">▣</div>
-          <span class="exec-kpi-label">
-            Procesos abiertos
-          </span>
+        <div>
+          <small>ESTADO OPERACIONAL</small>
+          <strong id="semaphoreStatus">ON TIME</strong>
         </div>
+      </div>
 
-        <b id="kCases">0</b>
-        <small>Operaciones comerciales activas</small>
-      </button>
+      <div class="semaphore-message">
+        <strong id="semaphoreSummary">
+          Operación dentro de plazo
+        </strong>
 
-      <button
-        class="exec-kpi blue"
-        onclick="activateView('tasks')"
-      >
-        <div class="exec-kpi-top">
-          <div class="exec-kpi-icon">✓</div>
-          <span class="exec-kpi-label">
-            Tareas pendientes
-          </span>
-        </div>
+        <span id="semaphoreDetail">
+          Sin situaciones críticas
+        </span>
+      </div>
 
-        <b id="kTasks">0</b>
-        <small>Acciones que requieren ejecución</small>
-      </button>
-
-      <button
-        class="exec-kpi orange"
-        onclick="activateView('stock')"
-      >
-        <div class="exec-kpi-top">
-          <div class="exec-kpi-icon">◇</div>
-          <span class="exec-kpi-label">
-            Stock crítico
-          </span>
-        </div>
-
-        <b id="kStock">0</b>
-        <small>Productos bajo condición mínima</small>
-      </button>
-
-      <button
-        class="exec-kpi purple"
-        onclick="activateView('imports')"
-      >
-        <div class="exec-kpi-top">
-          <div class="exec-kpi-icon">⇄</div>
-          <span class="exec-kpi-label">
-            Importaciones activas
-          </span>
-        </div>
-
-        <b id="kImports">0</b>
-        <small>Operaciones internacionales abiertas</small>
-      </button>
-
-      <button
-        class="exec-kpi green"
-        onclick="activateView('finance')"
-      >
-        <div class="exec-kpi-top">
-          <div class="exec-kpi-icon">$</div>
-          <span class="exec-kpi-label">
-            Cuentas por cobrar
-          </span>
-        </div>
-
-        <b id="kReceivable">$0</b>
-        <small>Ingresos pendientes registrados</small>
-      </button>
-
-      <button
-        class="exec-kpi yellow"
-        onclick="activateView('finance')"
-      >
-        <div class="exec-kpi-top">
-          <div class="exec-kpi-icon">$</div>
-          <span class="exec-kpi-label">
-            Cuentas por pagar
-          </span>
-        </div>
-
-        <b id="kPayable">$0</b>
-        <small>Compromisos pendientes registrados</small>
-      </button>
-
+      <div
+        id="semaphoreItems"
+        class="semaphore-items"
+      ></div>
     </section>
 
-    <section class="dashboard-content-grid">
-
-      <article class="exec-panel priorities-panel">
-        <div class="exec-panel-head">
-          <div>
-            <small>PLAN DEL DÍA</small>
-            <h3>Prioridades operacionales</h3>
-          </div>
-
-          <button onclick="activateView('tasks')">
-            Ver tareas
-          </button>
-        </div>
-
-        <div id="priorities" class="exec-panel-content">
-          <p>Analizando prioridades...</p>
-        </div>
-      </article>
-
-      <article class="exec-panel quick-panel">
+<section class="dashboard-content-grid">
+<article class="exec-panel quick-panel">
         <div class="exec-panel-head">
           <div>
             <small>ACCESOS DIRECTOS</small>
@@ -371,6 +369,317 @@
 
   </div>
 </section>
+
+<section id="field_trips" class="view">
+
+  <div class="fieldtrip-shell">
+
+    <div class="fieldtrip-head">
+      <div>
+        <p class="eyebrow">GS ONE · DIRECCIÓN</p>
+        <h2>Salidas a terreno</h2>
+        <p class="meta">
+          Planificación, logística y control de actividades fuera de base.
+        </p>
+      </div>
+
+      <button type="button" class="fieldtrip-primary">
+        + Nueva salida
+      </button>
+    </div>
+
+    <section class="fieldtrip-main-card">
+
+      <div class="fieldtrip-main-top">
+
+        <div>
+          <span class="fieldtrip-kicker">PRÓXIMA SALIDA</span>
+
+          <h3>Rally Chile Biobío 2026</h3>
+
+          <div class="fieldtrip-destination">
+            Concepción · Chile
+          </div>
+
+          <div class="fieldtrip-date">
+            03 SEP 2026
+            <span>→</span>
+            07 SEP 2026
+          </div>
+
+          <div class="fieldtrip-people">
+            Andrea Gabutti · José Severin
+          </div>
+        </div>
+
+        <div class="fieldtrip-status yellow">
+          EN PREPARACIÓN
+        </div>
+
+      </div>
+
+      <div class="fieldtrip-progress-head">
+        <span>PREPARACIÓN GENERAL</span>
+        <strong>82%</strong>
+      </div>
+
+      <div class="fieldtrip-progress">
+        <span style="width:82%"></span>
+      </div>
+
+      <div class="fieldtrip-summary">
+        <div class="ok">
+          <strong>31</strong>
+          <span>Completados</span>
+        </div>
+
+        <div class="pending">
+          <strong>4</strong>
+          <span>Pendientes</span>
+        </div>
+
+        <div class="critical">
+          <strong>2</strong>
+          <span>Críticos</span>
+        </div>
+
+        <button type="button" class="secondary compact">
+          Abrir plan de salida →
+        </button>
+      </div>
+
+    </section>
+
+    <div class="fieldtrip-grid">
+
+      <article class="fieldtrip-card">
+        <div class="fieldtrip-card-head">
+          <span>VIAJE</span>
+          <strong>75%</strong>
+        </div>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Pasajes ida y regreso
+        </label>
+
+        <label class="pending">
+          <input type="checkbox" disabled>
+          Check-in
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Traslados
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Equipaje confirmado
+        </label>
+      </article>
+
+      <article class="fieldtrip-card">
+        <div class="fieldtrip-card-head">
+          <span>ALOJAMIENTO</span>
+          <strong>100%</strong>
+        </div>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Hotel reservado
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Confirmación recibida
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Dirección registrada
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Check-in coordinado
+        </label>
+      </article>
+
+      <article class="fieldtrip-card">
+        <div class="fieldtrip-card-head">
+          <span>VEHÍCULO</span>
+          <strong>80%</strong>
+        </div>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Reserva vehículo
+        </label>
+
+        <label class="pending">
+          <input type="checkbox" disabled>
+          Combustible
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          TAG / Peajes
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Conductor autorizado
+        </label>
+      </article>
+
+      <article class="fieldtrip-card">
+        <div class="fieldtrip-card-head">
+          <span>DOCUMENTOS</span>
+          <strong>70%</strong>
+        </div>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Identificación
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Licencia conducir
+        </label>
+
+        <label class="critical">
+          <input type="checkbox" disabled>
+          Seguro de viaje
+        </label>
+
+        <label class="pending">
+          <input type="checkbox" disabled>
+          Acreditaciones
+        </label>
+      </article>
+
+      <article class="fieldtrip-card">
+        <div class="fieldtrip-card-head">
+          <span>EQUIPAMIENTO</span>
+          <strong>85%</strong>
+        </div>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Notebook + cargador
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Radios / powerbanks
+        </label>
+
+        <label class="pending">
+          <input type="checkbox" disabled>
+          Merchandising
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Ropa corporativa
+        </label>
+      </article>
+
+      <article class="fieldtrip-card">
+        <div class="fieldtrip-card-head">
+          <span>OPERACIÓN</span>
+          <strong>90%</strong>
+        </div>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Horarios
+        </label>
+
+        <label class="pending">
+          <input type="checkbox" disabled>
+          Acreditación evento
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Contactos locales
+        </label>
+
+        <label class="done">
+          <input type="checkbox" checked disabled>
+          Ubicación confirmada
+        </label>
+      </article>
+
+    </div>
+
+    <div class="fieldtrip-bottom-grid">
+
+      <article class="fieldtrip-budget">
+
+        <div class="fieldtrip-section-title">
+          PRESUPUESTO
+        </div>
+
+        <div class="fieldtrip-money">
+          <span>Presupuestado</span>
+          <strong>$ 850.000</strong>
+        </div>
+
+        <div class="fieldtrip-money">
+          <span>Gastado</span>
+          <strong>$ 615.000</strong>
+        </div>
+
+        <div class="fieldtrip-money available">
+          <span>Disponible</span>
+          <strong>$ 235.000</strong>
+        </div>
+
+        <div class="fieldtrip-render">
+          Rendición
+          <strong>Pendiente</strong>
+        </div>
+
+      </article>
+
+      <article class="fieldtrip-alerts">
+
+        <div class="fieldtrip-section-title">
+          ALERTAS DE DIRECCIÓN
+        </div>
+
+        <div class="fieldtrip-alert critical">
+          <span></span>
+          Seguro de viaje pendiente
+        </div>
+
+        <div class="fieldtrip-alert critical">
+          <span></span>
+          Documento vehículo pendiente
+        </div>
+
+        <div class="fieldtrip-alert pending">
+          <span></span>
+          Check-in disponible próximamente
+        </div>
+
+        <div class="fieldtrip-alert-total">
+          2 CRÍTICOS
+        </div>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</section>
+
+
 <section id="inbox" class="view"><div class="head"><h2>Inbox</h2><button onclick="openForm('inbox')">+ Entrada</button></div><div id="inboxList" class="list"></div></section>
 <section id="clients" class="view"><div class="head"><div><h2>Clientes</h2><p class="meta">Ficha única, facturación y despacho.</p></div><div class="head-actions"><button class="secondary" onclick="resetTestData()">Limpiar pruebas</button><button onclick="openClientForm()">+ Cliente</button></div></div><div id="clientOperationStatus" class="operation-status hidden"></div><div class="client-layout"><div><h3>Listado</h3><div id="clientsList" class="list"></div></div><div class="client-profile"><h3>Ficha única del cliente</h3><p class="meta">Selecciona un cliente para ver su historial, procesos, tareas y documentos.</p><div id="clientProfile"><p class="meta">Aún no hay cliente seleccionado.</p></div></div></div></section>
 <section id="commercial_processes" class="view">
@@ -449,58 +758,469 @@
 
 <dialog id="clientModal" class="client-modal">
   <form id="clientForm">
-    <div class="client-form-head"><div><p class="eyebrow">GS ONE · CLIENTES</p><h2>Nuevo cliente</h2><p class="meta">El número CLI se asigna automáticamente.</p></div><button type="button" class="icon-button" onclick="closeClientForm()">×</button></div>
+
+    <div class="client-form-head client-form-head-v2">
+      <div>
+        <p class="eyebrow">GS ONE · CLIENTES</p>
+        <h2>Nuevo cliente</h2>
+        <div class="client-head-meta">
+          <span>Alta rápida</span>
+          <span>CLI automático</span>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="icon-button"
+        onclick="closeClientForm()"
+        aria-label="Cerrar"
+      >×</button>
+    </div>
 
     <div id="rutStatus" class="rut-status hidden"></div>
-    <details open><summary>Identificación</summary><div class="form-grid">
-      <div class="field rut-field"><label>RUT *</label><div class="input-action"><input id="clientRut" name="rut" required placeholder="12.345.678-5"><button type="button" onclick="lookupRut()">Buscar</button></div></div>
-      <div class="field"><label>Tipo</label><select name="clientType"><option>Persona natural</option><option>Empresa</option><option>Equipo de competición</option><option>Taller</option><option>Distribuidor</option><option>Club deportivo</option><option>Otro</option></select></div>
-      <div class="field"><label>Nombre comercial *</label><input name="name" required></div>
-      <div class="field"><label>Razón social</label><input name="businessName"></div>
-      <div class="field"><label>Giro</label><input name="businessActivity"></div>
-      <div class="field span-2"><label>Dirección tributaria</label><input name="taxAddress" placeholder="Se completa automáticamente con el RUT"></div>
-      <div class="field"><label>Región tributaria</label><input id="taxRegion" name="taxRegion" placeholder="Se completa automáticamente con el RUT"></div>
-      <div class="field"><label>Comuna tributaria</label><input id="taxComuna" name="taxComuna" placeholder="Se completa automáticamente con el RUT"></div>
-      <div class="field"><label>Estado</label><select name="status"><option>Activo</option><option>Prospecto</option><option>Inactivo</option><option>Bloqueado</option></select></div>
-      <div class="field"><label>Ejecutivo responsable</label><select name="owner"><option>Andrea Gabutti</option><option>José Severin</option></select></div>
-      <div class="field"><label>Origen del cliente</label><select name="source"><option>WhatsApp</option><option>Correo</option><option>Web</option><option>Instagram</option><option>Evento</option><option>Recomendación</option><option>Teléfono</option><option>Otro</option></select></div>
-      <div class="field"><label>Email</label><input name="email" type="email"></div>
-      <div class="field"><label>Teléfono / WhatsApp</label><input name="whatsapp"></div>
-      <div class="field"><label>Disciplina</label><select name="discipline"><option>Por definir</option><option>Rally</option><option>Karting</option><option>Fórmula</option><option>Pista</option><option>Off Road</option><option>Sim Racing</option><option>Otra</option></select></div>
-      <div class="field"><label>Nivel</label><select name="level"><option>Por definir</option><option>Principiante</option><option>Amateur</option><option>Intermedio</option><option>Profesional</option></select></div>
-    </div></details>
 
-    <details open><summary>Datos de facturación</summary>
-      <div class="copy-panel"><label><input id="billingSameAsTax" type="checkbox" checked> Usar los mismos datos tributarios</label><button type="button" class="secondary compact" onclick="copyTaxToBilling()">Copiar datos tributarios</button><small>Al desmarcar podrás mantener una entidad o dirección de facturación diferente.</small></div>
-      <div id="billingFields" class="form-grid conditional">
-        <div class="field"><label>RUT facturación</label><input name="billingRut"></div>
-        <div class="field"><label>Razón social</label><input name="billingBusinessName"></div>
-        <div class="field"><label>Giro</label><input name="billingActivity"></div>
-        <div class="field"><label>Email DTE</label><input name="billingEmail" type="email"></div>
-        <div class="field"><label>Contacto de facturación</label><input name="billingContact"></div>
-        <div class="field"><label>Teléfono de facturación</label><input name="billingPhone"></div>
-        <div class="field span-2"><label>Dirección de facturación</label><input name="billingAddress"></div>
-        <div class="field"><label>Región</label><input id="billingRegion" name="billingRegion" placeholder="Copiada desde datos tributarios o editable"></div>
-        <div class="field"><label>Comuna</label><input id="billingComuna" name="billingComuna" placeholder="Copiada desde datos tributarios o editable"></div>
+    <!-- ===================================================
+         1. IDENTIDAD
+         =================================================== -->
+
+    <section class="client-section client-section-primary">
+      <div class="client-section-head">
+        <div>
+          <span class="client-step">01</span>
+          <div>
+            <h3>Identidad</h3>
+            <p>Identifica al cliente y consulta automáticamente sus datos tributarios.</p>
+          </div>
+        </div>
       </div>
-    </details>
 
-    <details open><summary>Datos de envío</summary>
-      <div class="copy-panel"><div class="copy-actions"><button type="button" class="secondary compact" onclick="copyTaxToDispatch()">Copiar tributarios</button><button type="button" class="secondary compact" onclick="copyBillingToDispatch()">Copiar facturación</button><button type="button" class="secondary compact" onclick="clearDispatchAddress()">Usar datos diferentes</button></div><small>La copia es puntual: después puedes editar el envío sin alterar tributarios ni facturación.</small></div>
       <div class="form-grid">
-        <div class="field"><label>Tipo de despacho</label><select id="dispatchType" name="dispatchType"><option>Retiro en tienda</option><option>Despacho a domicilio</option><option>Agencia de transporte</option><option>Retiro por tercero</option><option>Internacional</option><option>Otro</option></select></div>
-        <div class="field agency-only hidden"><label>Empresa de transporte</label><select id="transportCompany" name="transportCompany"><option value="">Seleccionar</option></select></div>
-        <div class="field dispatch-location"><label>Región de envío</label><input id="dispatchRegion" name="dispatchRegion" placeholder="Copiar desde tributarios/facturación o escribir"></div>
-        <div class="field dispatch-location"><label>Ciudad / comuna</label><input id="dispatchCity" name="dispatchCity" placeholder="Copiar desde tributarios/facturación o escribir"></div>
-        <div class="field agency-only hidden"><label>Sucursal</label><select id="transportBranch" name="transportBranch"><option value="">Seleccionar sucursal</option><option value="manual">Sucursal no registrada</option></select></div>
-        <div class="field dispatch-address span-2"><label>Dirección de envío</label><input name="dispatchAddress"></div>
-        <div class="field"><label>Destinatario / receptor</label><input name="dispatchRecipient"></div>
-        <div class="field"><label>Teléfono recepción</label><input name="dispatchPhone"></div>
-        <div class="field"><label>Email de envío</label><input name="dispatchEmail" type="email"></div>
-        <div class="field"><label>Origen copiado</label><input name="dispatchCopiedFrom" readonly placeholder="Datos propios"></div>
-        <div class="field span-2"><label>Instrucciones u observaciones</label><textarea name="dispatchNotes" rows="3" placeholder="Ej.: llamar antes de entregar, retirar en bodega, horario de atención..."></textarea></div>
+        <div class="field rut-field">
+          <label>RUT *</label>
+
+          <div class="input-action">
+            <input
+              id="clientRut"
+              name="rut"
+              required
+              placeholder="12.345.678-5"
+            >
+
+            <button
+              type="button"
+              onclick="lookupRut()"
+            >Buscar</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Tipo de cliente</label>
+
+          <select name="clientType">
+            <option>Persona natural</option>
+            <option>Empresa</option>
+            <option>Equipo de competición</option>
+            <option>Taller</option>
+            <option>Distribuidor</option>
+            <option>Club deportivo</option>
+            <option>Otro</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Nombre cliente / comercial *</label>
+          <input name="name" required>
+        </div>
+
+        <div class="field">
+          <label>Razón social</label>
+          <input name="businessName">
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         2. CONTACTO Y PERFIL COMERCIAL
+         =================================================== -->
+
+    <section class="client-section">
+      <div class="client-section-head">
+        <div>
+          <span class="client-step">02</span>
+          <div>
+            <h3>Contacto y perfil comercial</h3>
+            <p>Información para relacionarnos, vender y hacer seguimiento.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Teléfono / WhatsApp</label>
+          <input name="whatsapp">
+        </div>
+
+        <div class="field">
+          <label>Email</label>
+          <input name="email" type="email">
+        </div>
+
+        <div class="field">
+          <label>Origen del cliente</label>
+
+          <select name="source">
+            <option>WhatsApp</option>
+            <option>Correo</option>
+            <option>Web</option>
+            <option>Instagram</option>
+            <option>Evento</option>
+            <option>Recomendación</option>
+            <option>Teléfono</option>
+            <option>Otro</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Ejecutivo responsable</label>
+
+          <select name="owner">
+            <option>Andrea Gabutti</option>
+            <option>José Severin</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Disciplina</label>
+
+          <select name="discipline">
+            <option>Por definir</option>
+            <option>Rally</option>
+            <option>Karting</option>
+            <option>Fórmula</option>
+            <option>Pista</option>
+            <option>Off Road</option>
+            <option>Sim Racing</option>
+            <option>Otra</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Nivel</label>
+
+          <select name="level">
+            <option>Por definir</option>
+            <option>Principiante</option>
+            <option>Amateur</option>
+            <option>Intermedio</option>
+            <option>Profesional</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Estado</label>
+
+          <select name="status">
+            <option>Activo</option>
+            <option>Prospecto</option>
+            <option>Inactivo</option>
+            <option>Bloqueado</option>
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================================================
+         3. DATOS TRIBUTARIOS
+         =================================================== -->
+
+    <details class="client-section client-tax-section" open>
+      <summary>
+        <span class="client-step">03</span>
+
+        <span class="client-summary-copy">
+          <strong>Datos tributarios</strong>
+          <small>Se completan automáticamente al consultar el RUT</small>
+        </span>
+      </summary>
+
+      <div class="form-grid client-tax-grid">
+
+        <div class="field">
+          <label>Giro</label>
+          <input name="businessActivity">
+        </div>
+
+        <div class="field span-2">
+          <label>Dirección tributaria</label>
+
+          <input
+            name="taxAddress"
+            placeholder="Se completa automáticamente con el RUT"
+          >
+        </div>
+
+        <div class="field">
+          <label>Región tributaria</label>
+
+          <input
+            id="taxRegion"
+            name="taxRegion"
+            placeholder="Automático"
+          >
+        </div>
+
+        <div class="field">
+          <label>Comuna tributaria</label>
+
+          <input
+            id="taxComuna"
+            name="taxComuna"
+            placeholder="Automático"
+          >
+        </div>
+
       </div>
     </details>
+
+    <!-- ===================================================
+         4. FACTURACION DIFERENTE
+         =================================================== -->
+
+    <details class="client-section client-optional-section">
+      <summary>
+        <span class="client-plus">+</span>
+
+        <span class="client-summary-copy">
+          <strong>Facturación distinta</strong>
+          <small>Abrir solamente si los datos de facturación son diferentes</small>
+        </span>
+      </summary>
+
+      <div class="copy-panel">
+        <label>
+          <input
+            id="billingSameAsTax"
+            type="checkbox"
+            checked
+          >
+          Usar los mismos datos tributarios
+        </label>
+
+        <button
+          type="button"
+          class="secondary compact"
+          onclick="copyTaxToBilling()"
+        >
+          Copiar datos tributarios
+        </button>
+
+        <small>
+          Si utilizas los mismos datos tributarios no necesitas completar esta sección.
+        </small>
+      </div>
+
+      <div id="billingFields" class="form-grid conditional">
+
+        <div class="field">
+          <label>RUT facturación</label>
+          <input name="billingRut">
+        </div>
+
+        <div class="field">
+          <label>Razón social</label>
+          <input name="billingBusinessName">
+        </div>
+
+        <div class="field">
+          <label>Giro</label>
+          <input name="billingActivity">
+        </div>
+
+        <div class="field">
+          <label>Email DTE</label>
+          <input name="billingEmail" type="email">
+        </div>
+
+        <div class="field">
+          <label>Contacto de facturación</label>
+          <input name="billingContact">
+        </div>
+
+        <div class="field">
+          <label>Teléfono de facturación</label>
+          <input name="billingPhone">
+        </div>
+
+        <div class="field span-2">
+          <label>Dirección de facturación</label>
+          <input name="billingAddress">
+        </div>
+
+        <div class="field">
+          <label>Región</label>
+          <input
+            id="billingRegion"
+            name="billingRegion"
+            placeholder="Copiada desde datos tributarios o editable"
+          >
+        </div>
+
+        <div class="field">
+          <label>Comuna</label>
+          <input
+            id="billingComuna"
+            name="billingComuna"
+            placeholder="Copiada desde datos tributarios o editable"
+          >
+        </div>
+
+      </div>
+    </details>
+
+    <!-- ===================================================
+         5. ENVIO DIFERENTE
+         =================================================== -->
+
+    <details class="client-section client-optional-section">
+      <summary>
+        <span class="client-plus">+</span>
+
+        <span class="client-summary-copy">
+          <strong>Dirección de envío</strong>
+          <small>Abrir cuando el cliente necesite despacho o entrega diferente</small>
+        </span>
+      </summary>
+
+      <div class="copy-panel">
+        <div class="copy-actions">
+
+          <button
+            type="button"
+            class="secondary compact"
+            onclick="copyTaxToDispatch()"
+          >
+            Copiar tributarios
+          </button>
+
+          <button
+            type="button"
+            class="secondary compact"
+            onclick="copyBillingToDispatch()"
+          >
+            Copiar facturación
+          </button>
+
+          <button
+            type="button"
+            class="secondary compact"
+            onclick="clearDispatchAddress()"
+          >
+            Usar datos diferentes
+          </button>
+
+        </div>
+
+        <small>
+          Puedes copiar una dirección existente y modificar solamente lo necesario.
+        </small>
+      </div>
+
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Tipo de despacho</label>
+
+          <select id="dispatchType" name="dispatchType">
+            <option>Retiro en tienda</option>
+            <option>Despacho a domicilio</option>
+            <option>Agencia de transporte</option>
+            <option>Retiro por tercero</option>
+            <option>Internacional</option>
+            <option>Otro</option>
+          </select>
+        </div>
+
+        <div class="field agency-only hidden">
+          <label>Empresa de transporte</label>
+
+          <select id="transportCompany" name="transportCompany">
+            <option value="">Seleccionar</option>
+          </select>
+        </div>
+
+        <div class="field dispatch-location">
+          <label>Región de envío</label>
+
+          <input
+            id="dispatchRegion"
+            name="dispatchRegion"
+            placeholder="Copiar o escribir"
+          >
+        </div>
+
+        <div class="field dispatch-location">
+          <label>Ciudad / comuna</label>
+
+          <input
+            id="dispatchCity"
+            name="dispatchCity"
+            placeholder="Copiar o escribir"
+          >
+        </div>
+
+        <div class="field agency-only hidden">
+          <label>Sucursal</label>
+
+          <select id="transportBranch" name="transportBranch">
+            <option value="">Seleccionar sucursal</option>
+            <option value="manual">Sucursal no registrada</option>
+          </select>
+        </div>
+
+        <div class="field dispatch-address span-2">
+          <label>Dirección de envío</label>
+          <input name="dispatchAddress">
+        </div>
+
+        <div class="field">
+          <label>Destinatario / receptor</label>
+          <input name="dispatchRecipient">
+        </div>
+
+        <div class="field">
+          <label>Teléfono recepción</label>
+          <input name="dispatchPhone">
+        </div>
+
+        <div class="field">
+          <label>Email de envío</label>
+          <input name="dispatchEmail" type="email">
+        </div>
+
+        <div class="field">
+          <label>Origen copiado</label>
+          <input
+            name="dispatchCopiedFrom"
+            readonly
+            placeholder="Datos propios"
+          >
+        </div>
+
+        <div class="field span-2">
+          <label>Instrucciones u observaciones</label>
+
+          <textarea
+            name="dispatchNotes"
+            rows="3"
+            placeholder="Ej.: llamar antes de entregar, horario de atención..."
+          ></textarea>
+        </div>
+
+      </div>
+    </details>
+
 
     <details><summary>Condiciones comerciales</summary><div class="form-grid">
       <div class="field"><label>Lista de precios</label><select name="priceList"><option>Precio general</option><option>Cliente frecuente</option><option>Distribuidor</option><option>Especial Executive</option></select></div>
@@ -525,6 +1245,100 @@
 </dialog>
 
 <dialog id="catalogModal" class="catalog-modal"><form id="catalogForm"><div class="client-form-head"><div><p class="eyebrow">GS ONE · CONFIGURACIÓN</p><h2>Nuevo registro maestro</h2></div><button type="button" class="icon-button" onclick="closeCatalogForm()">×</button></div><div class="form-grid"><div class="field"><label>Tipo de registro</label><select id="catalogEntity" name="entity" onchange="toggleCatalogEntity()"><option value="catalog">Catálogo general</option><option value="transport_company">Empresa de transporte</option><option value="transport_branch">Sucursal de transporte</option></select></div><div class="field catalog-general"><label>Catálogo</label><select name="category" id="catalogFormCategory"></select></div><div class="field branch-only hidden"><label>Empresa de transporte</label><select name="companyId" id="branchCompany"></select></div><div class="field"><label>Nombre *</label><input name="name" required></div><div class="field branch-only hidden"><label>Región</label><select name="region" id="branchRegion"></select></div><div class="field branch-only hidden"><label>Ciudad / comuna</label><input name="city"></div><div class="field branch-only hidden span-2"><label>Dirección</label><input name="address"></div><div class="field"><label>Estado</label><select name="status"><option>Activo</option><option>Inactivo</option></select></div><div class="field catalog-general"><label>Orden</label><input name="sortOrder" type="number" min="1"></div><div class="field span-2"><label>Observaciones</label><textarea name="notes" rows="3"></textarea></div></div><div class="actions"><button type="button" class="secondary" onclick="closeCatalogForm()">Cancelar</button><button type="submit">Guardar</button></div></form></dialog>
+
+<dialog id="commercialFollowupModal" class="catalog-modal">
+  <form id="commercialFollowupForm">
+
+    <div class="client-form-head">
+      <div>
+        <p class="eyebrow">GS ONE · PROCESO COMERCIAL</p>
+        <h2>Registrar seguimiento</h2>
+        <p class="meta" id="commercialFollowupClient"></p>
+      </div>
+
+      <button
+        type="button"
+        class="icon-button"
+        onclick="closeCommercialFollowup()"
+        aria-label="Cerrar"
+      >×</button>
+    </div>
+
+    <input type="hidden" name="processId" id="followupProcessId">
+
+    <div class="form-grid">
+
+      <div class="field span-2">
+        <label>Resultado del seguimiento *</label>
+        <textarea
+          name="result"
+          id="followupResult"
+          rows="4"
+          required
+          placeholder="Ej: Cliente interesado. Solicita confirmar disponibilidad y precio."
+        ></textarea>
+      </div>
+
+      <div class="field span-2">
+        <label>Próxima acción *</label>
+        <input
+          name="nextAction"
+          id="followupNextAction"
+          required
+          placeholder="Ej: Enviar cotización"
+        >
+      </div>
+
+      <div class="field">
+        <label>Fecha de seguimiento *</label>
+        <input
+          type="date"
+          name="nextDate"
+          id="followupNextDate"
+          required
+        >
+      </div>
+
+      <div class="field">
+        <label>Estado del proceso *</label>
+        <select name="status" id="followupStatus" required>
+          <option>Nuevo</option>
+          <option>Contactado</option>
+          <option>Cotizando</option>
+          <option>Cotización enviada</option>
+          <option>Seguimiento</option>
+          <option>Negociación</option>
+          <option>Ganado</option>
+          <option>Perdido</option>
+        </select>
+      </div>
+
+      <div class="field span-2">
+        <label>Responsable</label>
+        <input
+          name="owner"
+          id="followupOwner"
+          readonly
+        >
+      </div>
+
+    </div>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="secondary"
+        onclick="closeCommercialFollowup()"
+      >Cancelar</button>
+
+      <button type="submit">
+        Guardar seguimiento
+      </button>
+    </div>
+
+  </form>
+</dialog>
+
 <dialog id="modal"><form id="recordForm"><h2 id="modalTitle"></h2><div id="fields"></div><div class="actions"><button type="button" class="secondary" onclick="closeForm()">Cancelar</button><button>Guardar</button></div></form></dialog>
 <script src="modules/utils.js?v=0.7.0"></script>
 <script src="modules/dashboard.js?v=0.8.0"></script>

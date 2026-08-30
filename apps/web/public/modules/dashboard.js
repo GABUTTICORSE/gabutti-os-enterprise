@@ -97,7 +97,8 @@ function startDashboardClock() {
       now.toLocaleTimeString('es-CL', {
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit'
+        second: '2-digit',
+        hour12: false
       })
     );
 
@@ -115,6 +116,44 @@ function startDashboardClock() {
         day: '2-digit',
         month: 'long',
         year: 'numeric'
+      })
+    );
+
+    const chronoHand =
+      dashboardElement('dashboardChronoHand');
+
+    const minuteHand =
+      dashboardElement('dashboardMinuteHand');
+
+    const hourHand =
+      dashboardElement('dashboardHourHand');
+
+    const seconds = now.getSeconds();
+    const minutes =
+      now.getMinutes() + seconds / 60;
+
+    const hours =
+      (now.getHours() % 12) + minutes / 60;
+
+    if (chronoHand) {
+      chronoHand.style.transform =
+        `translateX(-50%) rotate(${seconds * 6}deg)`;
+    }
+
+    if (minuteHand) {
+      minuteHand.style.transform =
+        `translateX(-50%) rotate(${minutes * 6}deg)`;
+    }
+
+    if (hourHand) {
+      hourHand.style.transform =
+        `translateX(-50%) rotate(${hours * 30}deg)`;
+    }
+
+    dashboardSetText(
+      'gtDigitalClock',
+      now.toLocaleTimeString('es-CL', {
+        hour12: false
       })
     );
 
@@ -166,68 +205,202 @@ function renderPriorityItems(items, emptyMessage) {
     .join('');
 }
 
-function renderDashboardPriorities(
-  critical,
-  attention
-) {
-  const priorities =
-    dashboardElement('priorities');
+function openDashboardPriority(item){
 
-  if (!priorities) {
+  if(!item || !item.targetView){
     return;
   }
 
-  priorities.innerHTML = `
-    <div class="exec-priority-group critical">
-      <div class="exec-priority-title">
-        <span>● Crítico</span>
-        <span>${critical.length}</span>
+  activateView(item.targetView);
+
+  if(
+    item.targetType === 'commercial_process' &&
+    item.targetId &&
+    typeof showCommercialProcess === 'function'
+  ){
+    showCommercialProcess(item.targetId);
+    return;
+  }
+
+  if(
+    item.targetType === 'task' &&
+    item.targetId &&
+    typeof openForm === 'function'
+  ){
+    openForm('tasks', item.targetId);
+    return;
+  }
+
+  if(
+    item.targetType === 'stock' &&
+    item.targetId &&
+    typeof openForm === 'function'
+  ){
+    openForm('stock', item.targetId);
+    return;
+  }
+
+  if(
+    item.targetType === 'import' &&
+    item.targetId &&
+    typeof openForm === 'function'
+  ){
+    openForm('imports', item.targetId);
+  }
+}
+
+
+function renderSemaphoreColumn(
+  title,
+  level,
+  items,
+  emptyMessage
+){
+
+  const rows = items
+    .slice(0, 8)
+    .map(item => {
+
+      const payload =
+        encodeURIComponent(
+          JSON.stringify({
+            targetView:item.targetView || '',
+            targetType:item.targetType || '',
+            targetId:item.targetId || ''
+          })
+        );
+
+      return `
+        <button
+          type="button"
+          class="semaphore-card ${level}"
+          onclick="openDashboardPriority(JSON.parse(decodeURIComponent('${payload}')))"
+        >
+          <span class="semaphore-card-dot"></span>
+
+          <span class="semaphore-card-body">
+            <strong>
+              ${dashboardEscape(
+                item.title ||
+                'Pendiente sin título'
+              )}
+            </strong>
+
+            <small>
+              ${dashboardEscape(
+                item.semaphoreLabel ||
+                item.module ||
+                ''
+              )}
+            </small>
+
+            <em>
+              ${dashboardEscape(
+                item.detail || ''
+              )}
+            </em>
+          </span>
+        </button>
+      `;
+    })
+    .join('');
+
+  return `
+    <section class="semaphore-column ${level}">
+      <div class="semaphore-column-head">
+        <span class="semaphore-column-light"></span>
+
+        <div>
+          <small>${title}</small>
+          <strong>${items.length}</strong>
+        </div>
       </div>
 
-      ${renderPriorityItems(
+      <div class="semaphore-column-list">
+        ${
+          rows ||
+          `<div class="semaphore-empty">${emptyMessage}</div>`
+        }
+      </div>
+    </section>
+  `;
+}
+
+
+function renderDashboardPriorities(
+  critical,
+  attention,
+  okItems = []
+) {
+
+  const container =
+    dashboardElement('operationalSemaphore');
+
+  const status =
+    dashboardElement('semaphoreStatus');
+
+  const summary =
+    dashboardElement('semaphoreSummary');
+
+  const detail =
+    dashboardElement('semaphoreDetail');
+
+  const items =
+    dashboardElement('semaphoreItems');
+
+  if (
+    !container ||
+    !status ||
+    !summary ||
+    !detail ||
+    !items
+  ) {
+    return;
+  }
+
+  container.classList.remove(
+    'is-ok',
+    'is-attention',
+    'is-critical'
+  );
+
+  if(critical.length > 0){
+    container.classList.add('is-critical');
+  } else if(attention.length > 0){
+    container.classList.add('is-attention');
+  } else {
+    container.classList.add('is-ok');
+  }
+
+  status.textContent = 'CONTROL OPERACIONAL';
+
+  summary.textContent = '';
+  detail.textContent = '';
+
+  items.innerHTML = `
+    <div class="semaphore-board">
+
+      ${renderSemaphoreColumn(
+        'URGENTE',
+        'critical',
         critical,
-        'No existen alertas críticas'
+        'Sin urgencias'
       )}
-    </div>
 
-    <div class="exec-priority-group attention">
-      <div class="exec-priority-title">
-        <span>● Atención</span>
-        <span>${attention.length}</span>
-      </div>
-
-      ${renderPriorityItems(
+      ${renderSemaphoreColumn(
+        'ATENCIÓN',
+        'attention',
         attention,
-        'No existen asuntos importantes pendientes'
+        'Sin asuntos próximos'
       )}
-    </div>
 
-    <div class="exec-priority-group operational">
-      <div class="exec-priority-title">
-        <span>● Operativo</span>
+      ${renderSemaphoreColumn(
+        'AL DÍA',
+        'ok',
+        okItems,
+        'Sin registros al día'
+      )}
 
-        <span>
-          ${critical.length === 0
-            ? 'Todo OK'
-            : 'Revisar'}
-        </span>
-      </div>
-
-      <div class="exec-priority-item">
-        <span>
-          Sistema ejecutándose correctamente
-        </span>
-
-        <span>GS ONE</span>
-      </div>
-
-      <div class="exec-priority-item">
-        <span>
-          Información obtenida desde registros reales
-        </span>
-
-        <span>Actualizado</span>
-      </div>
     </div>
   `;
 }
@@ -264,6 +437,77 @@ function weatherDescription(code) {
   return descriptions[code] ||
     'Condición meteorológica';
 }
+function weatherIcon(code) {
+  if (code === 0) return '☀';
+  if ([1, 2].includes(code)) return '◐';
+  if ([3, 45, 48].includes(code)) return '☁';
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return '☂';
+  if ([71, 73, 75].includes(code)) return '❄';
+  if ([95, 96, 99].includes(code)) return 'ϟ';
+  return '●';
+}
+
+async function resolveLocationName(
+  latitude,
+  longitude
+) {
+  try {
+    const url =
+      'https://api.bigdatacloud.net/data/reverse-geocode-client' +
+      `?latitude=${latitude}` +
+      `&longitude=${longitude}` +
+      '&localityLanguage=es';
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error('Reverse geocode no disponible');
+    }
+
+    const data = await response.json();
+
+    const city =
+      data.city ||
+      data.locality ||
+      data.localityInfo?.administrative?.[3]?.name ||
+      data.principalSubdivision ||
+      'Zona local';
+
+    const region =
+      data.principalSubdivision ||
+      data.countryName ||
+      '';
+
+    dashboardSetText(
+      'weatherLocation',
+      String(city).toUpperCase()
+    );
+
+    dashboardSetText(
+      'weatherRegion',
+      region
+        ? `${region} · Chile`
+        : 'CLIMA LOCAL'
+    );
+
+  } catch (error) {
+    console.warn(
+      'No fue posible resolver ciudad:',
+      error
+    );
+
+    dashboardSetText(
+      'weatherLocation',
+      'ZONA LOCAL'
+    );
+
+    dashboardSetText(
+      'weatherRegion',
+      'CLIMA LOCAL'
+    );
+  }
+}
+
 async function loadWeather(
   latitude,
   longitude
@@ -275,6 +519,8 @@ async function loadWeather(
     '&current=' +
     'temperature_2m,' +
     'apparent_temperature,' +
+    'relative_humidity_2m,' +
+    'wind_speed_10m,' +
     'weather_code' +
     '&timezone=auto';
 
@@ -290,31 +536,54 @@ async function loadWeather(
   const current = data.current || {};
 
   const temperature = Math.round(
-    dashboardNumber(
-      current.temperature_2m
-    )
+    dashboardNumber(current.temperature_2m)
   );
 
-  const apparentTemperature = Math.round(
-    dashboardNumber(
-      current.apparent_temperature
-    )
+  const apparent = Math.round(
+    dashboardNumber(current.apparent_temperature)
+  );
+
+  const humidity = Math.round(
+    dashboardNumber(current.relative_humidity_2m)
+  );
+
+  const wind = Math.round(
+    dashboardNumber(current.wind_speed_10m)
+  );
+
+  const description =
+    weatherDescription(current.weather_code);
+
+  dashboardSetText(
+    'weatherTempMain',
+    `${temperature}°C`
   );
 
   dashboardSetText(
     'weatherTemperature',
-    `${temperature}°C · ` +
-    `${weatherDescription(
-      current.weather_code
-    )} · ` +
-    `Sensación ${apparentTemperature}°C`
+    `${description} · Sensación ${apparent}°C`
+  );
+
+  dashboardSetText(
+    'weatherWind',
+    `${wind} km/h`
+  );
+
+  dashboardSetText(
+    'weatherHumidity',
+    `${humidity}%`
+  );
+
+  dashboardSetText(
+    'weatherIcon',
+    weatherIcon(current.weather_code)
   );
 }
 
 function updateDashboardLocation() {
   dashboardSetText(
     'weatherLocation',
-    'Detectando ubicación...'
+    'DETECTANDO...'
   );
 
   dashboardSetText(
@@ -325,14 +594,8 @@ function updateDashboardLocation() {
   if (!navigator.geolocation) {
     dashboardSetText(
       'weatherLocation',
-      'Ubicación no disponible'
+      'UBICACIÓN NO DISPONIBLE'
     );
-
-    dashboardSetText(
-      'weatherTemperature',
-      'Geolocalización no disponible'
-    );
-
     return;
   }
 
@@ -344,28 +607,16 @@ function updateDashboardLocation() {
       const longitude =
         position.coords.longitude;
 
-      dashboardSetText(
-        'weatherLocation',
-        'Ubicación actual'
-      );
-
-      try {
-        await loadWeather(
+      await Promise.allSettled([
+        resolveLocationName(
           latitude,
           longitude
-        );
-
-      } catch (error) {
-        console.error(
-          'Error consultando clima:',
-          error
-        );
-
-        dashboardSetText(
-          'weatherTemperature',
-          'Clima temporalmente no disponible'
-        );
-      }
+        ),
+        loadWeather(
+          latitude,
+          longitude
+        )
+      ]);
     },
 
     error => {
@@ -376,19 +627,19 @@ function updateDashboardLocation() {
 
       dashboardSetText(
         'weatherLocation',
-        'Ubicación no autorizada'
+        'UBICACIÓN NO AUTORIZADA'
       );
 
       dashboardSetText(
         'weatherTemperature',
-        'Autoriza la ubicación en el navegador'
+        'Autoriza ubicación en el navegador'
       );
     },
 
     {
       enableHighAccuracy: false,
       timeout: 10000,
-      maximumAge: 600000
+      maximumAge: 300000
     }
   );
 }
@@ -397,7 +648,26 @@ function updateDashboardLocation() {
    MOTORSPORT LIVE
    ========================================================= */
 
-function startMotorsportTicker() {
+
+function dashboardNewsUrl(value = '') {
+  const raw = String(value || '').trim();
+
+  // Formato contaminado: [https://...](https://...)
+  const markdown = raw.match(
+    /^\[[^\]]+\]\((https?:\/\/[^)]+)\)$/
+  );
+
+  if (markdown) {
+    return markdown[1];
+  }
+
+  // URL normal
+  const direct = raw.match(/https?:\/\/[^\s\])]+/);
+
+  return direct ? direct[0] : '';
+}
+
+async function startMotorsportTicker() {
   const ticker =
     dashboardElement('motorsportTicker');
 
@@ -405,21 +675,76 @@ function startMotorsportTicker() {
     return;
   }
 
-  const news = [
-    'GS ONE conectado al ecosistema motorsport',
-    'FIA · Reglamentos y homologaciones',
-    'WRC · Noticias y resultados internacionales',
-    'Rally nacional · Calendarios y novedades',
-    'OMP · Bell · Stilo · EvoCorse',
-    'Oreca · Endless · Lifeline · Fastime',
-    'Dakar · WEC · IMSA · Fórmula 1'
-  ];
+  try {
+    const response =
+      await api('/api/motorsport/news');
 
-  ticker.innerHTML = news
-    .map(item => `
-      <span>${dashboardEscape(item)}</span>
-    `)
-    .join('');
+    const news =
+      Array.isArray(response.items)
+        ? response.items
+        : [];
+
+    if (!news.length) {
+      ticker.innerHTML = `
+        <a href="#" onclick="return false;">
+          MOTORSPORT LIVE · Sin novedades publicadas hoy
+        </a>
+      `;
+
+      return;
+    }
+
+    ticker.innerHTML = news
+      .map(item => `
+        <a
+          href="${dashboardEscape(
+            String(item.url || '')
+              .replace(/^\[[^\]]*\]\((https?:\/\/[^)]+)\)$/, '$1')
+          )}"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="${dashboardEscape(
+            [
+              item.source,
+              item.category
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          )}"
+        >
+          ${dashboardEscape(
+            [
+              item.category,
+              item.title,
+              item.source
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          )}
+        </a>
+      `)
+      .join('');
+
+  } catch (error) {
+    console.error(
+      'Motorsport LIVE:',
+      error
+    );
+
+    ticker.innerHTML = `
+      <a href="#" onclick="return false;">
+        MOTORSPORT LIVE · No fue posible actualizar las noticias
+      </a>
+    `;
+  }
+
+  if (!window.__gsOneMotorsportRefresh) {
+    window.__gsOneMotorsportRefresh =
+      setInterval(
+        startMotorsportTicker,
+        15 * 60 * 1000
+      );
+  }
 }
 
 /* =========================================================
@@ -459,12 +784,17 @@ async function renderDashboard() {
 
   const critical =
     prioritiesData.filter(
-      item => item.priority === 'Alta'
+      item => item.semaphoreLevel === 'red'
     );
 
   const attention =
     prioritiesData.filter(
-      item => item.priority !== 'Alta'
+      item => item.semaphoreLevel === 'yellow'
+    );
+
+  const okItems =
+    prioritiesData.filter(
+      item => item.semaphoreLevel === 'green'
     );
 
   const orders =
@@ -641,7 +971,8 @@ async function renderDashboard() {
 
   renderDashboardPriorities(
     critical,
-    attention
+    attention,
+    okItems
   );
 
   startDashboardClock();

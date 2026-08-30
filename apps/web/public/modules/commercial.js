@@ -18,17 +18,64 @@ function processStatusColor(status){
   return 'yellow';
 }
 
+
+function commercialFollowupStatus(nextDate){
+
+  if(!nextDate){
+    return {
+      label:'Sin fecha',
+      color:'blue'
+    };
+  }
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const followup = new Date(nextDate + 'T00:00:00');
+  followup.setHours(0,0,0,0);
+
+  const diffDays =
+    Math.round(
+      (followup - today) / 86400000
+    );
+
+  if(diffDays < 0){
+    return {
+      label:'Vencido',
+      color:'red'
+    };
+  }
+
+  if(diffDays <= 1){
+    return {
+      label:'Atención',
+      color:'yellow'
+    };
+  }
+
+  return {
+    label:'Al día',
+    color:'green'
+  };
+}
+
 function processCard(p){
   const color = processStatusColor(p.status || '');
+  const followup = commercialFollowupStatus(p.nextDate);
 
   return `
     <div class="process-card" onclick="showCommercialProcess('${p.id}')">
       <div>
         <h3>${p.number || p.id} · ${p.product || 'Proceso comercial'}</h3>
         <p class="meta">${p.clientName || '-'} · ${p.owner || '-'}</p>
+        <p class="meta">
+          Seguimiento: ${p.nextDate || 'Sin fecha'}
+          · ${p.nextAction || 'Sin acción definida'}
+        </p>
       </div>
 
       <div class="process-right">
+        ${tag(followup.label, followup.color)}
         ${tag(p.status || '-', color)}
         <strong>${money(p.value)}</strong>
       </div>
@@ -56,11 +103,20 @@ function showCommercialProcess(id){
   const profile = document.getElementById('commercialProfile');
   if(!profile) return;
 
+  const followup = commercialFollowupStatus(process.nextDate);
+
   profile.innerHTML = `
     <h2>${process.clientName}</h2>
     <p class="meta">${process.product}</p>
 
     <div class="profile-grid">
+      <div class="profile-box commercial-urgency urgency-${followup.color}">
+        <b>Urgencia seguimiento</b>
+        <div class="urgency-label">
+          ● ${followup.label}
+        </div>
+      </div>
+
       <div class="profile-box">
         <b>Estado</b><br>
         ${tag(process.status, process.status === 'Esperando Pago' ? 'red' : 'yellow')}
@@ -77,12 +133,18 @@ function showCommercialProcess(id){
       </div>
 
       <div class="profile-box">
-        <b>Próxima fecha</b><br>
+        <b>Próxima acción</b><br>
+        ${process.nextAction || '-'}
+      </div>
+
+      <div class="profile-box">
+        <b>Fecha de seguimiento</b><br>
         ${process.nextDate || '-'}
       </div>
     </div>
 
     <div class="quick-actions">
+      <button onclick="registerCommercialFollowup('${process.id}')">📞 Registrar seguimiento</button>
       <button onclick="createQuoteFromProcess('${process.id}')">📄 Generar cotización</button>
       <button>💰 Registrar pago</button>
       <button>📦 Reservar stock</button>
@@ -117,6 +179,211 @@ function showCommercialProcess(id){
       : '<p class="meta">Sin historial todavía.</p>'
     }
   `;
+}
+
+
+function registerCommercialFollowup(id){
+
+  const process = (state.commercial_processes || [])
+    .find(p => p.id === id);
+
+  if(!process) return;
+
+  const modal =
+    document.getElementById('commercialFollowupModal');
+
+  const form =
+    document.getElementById('commercialFollowupForm');
+
+  if(!modal || !form){
+    alert('No fue posible abrir el formulario de seguimiento.');
+    return;
+  }
+
+  form.reset();
+
+  document.getElementById('followupProcessId').value =
+    process.id;
+
+  document.getElementById('commercialFollowupClient').textContent =
+    (process.clientName || 'Cliente') +
+    (process.product ? ' · ' + process.product : '');
+
+  document.getElementById('followupResult').value =
+    '';
+
+  document.getElementById('followupNextAction').value =
+    process.nextAction || '';
+
+  document.getElementById('followupNextDate').value =
+    process.nextDate || '';
+
+  const statusField =
+    document.getElementById('followupStatus');
+
+  const validStatuses = [
+    'Nuevo',
+    'Contactado',
+    'Cotizando',
+    'Cotización enviada',
+    'Seguimiento',
+    'Negociación',
+    'Ganado',
+    'Perdido'
+  ];
+
+  statusField.value =
+    validStatuses.includes(process.status)
+      ? process.status
+      : 'Nuevo';
+
+  document.getElementById('followupOwner').value =
+    process.owner || '';
+
+  modal.showModal();
+
+  setTimeout(() => {
+    document.getElementById('followupResult')?.focus();
+  }, 0);
+}
+
+
+function closeCommercialFollowup(){
+
+  const modal =
+    document.getElementById('commercialFollowupModal');
+
+  if(modal?.open){
+    modal.close();
+  }
+}
+
+
+const commercialFollowupForm =
+  document.getElementById('commercialFollowupForm');
+
+if(commercialFollowupForm){
+
+  commercialFollowupForm.onsubmit =
+    async event => {
+
+      event.preventDefault();
+
+      const formData =
+        Object.fromEntries(
+          new FormData(event.target).entries()
+        );
+
+      const id =
+        String(formData.processId || '').trim();
+
+      const process =
+        (state.commercial_processes || [])
+          .find(p => p.id === id);
+
+      if(!process){
+        alert('No se encontró el proceso comercial.');
+        return;
+      }
+
+      const result =
+        String(formData.result || '').trim();
+
+      const nextAction =
+        String(formData.nextAction || '').trim();
+
+      const nextDate =
+        String(formData.nextDate || '').trim();
+
+      const status =
+        String(formData.status || '').trim();
+
+      const owner =
+        String(formData.owner || process.owner || '').trim();
+
+      if(!result){
+        alert('Debes registrar el resultado del seguimiento.');
+        return;
+      }
+
+      if(!nextAction){
+        alert('Debes definir la próxima acción.');
+        return;
+      }
+
+      if(!nextDate){
+        alert('Debes definir la fecha del próximo seguimiento.');
+        return;
+      }
+
+      const now =
+        new Date().toISOString();
+
+      const updated =
+        await api(
+          '/api/commercial_processes/' + id,
+          {
+            method:'PUT',
+            body:JSON.stringify({
+              status:
+                status || process.status,
+              owner:
+                owner || process.owner,
+              nextAction,
+              nextDate,
+              lastFollowupAt:now,
+              lastFollowupResult:result
+            })
+          }
+        );
+
+      if(updated?.error){
+        alert(updated.error);
+        return;
+      }
+
+      const history =
+        await api(
+          '/api/history',
+          {
+            method:'POST',
+            body:JSON.stringify({
+              processId:process.id,
+              clientId:process.clientId || '',
+              clientName:process.clientName || '',
+              type:'Seguimiento',
+              title:'Seguimiento comercial',
+              description:
+                result +
+                ' · Próxima acción: ' +
+                nextAction +
+                ' · Próxima fecha: ' +
+                nextDate,
+              owner:
+                owner || process.owner || '',
+              status:
+                status || process.status,
+              sourceId:process.id
+            })
+          }
+        );
+
+      if(history?.error){
+        alert(
+          'El proceso se actualizó, pero no fue posible ' +
+          'registrar el historial: ' +
+          history.error
+        );
+        return;
+      }
+
+      closeCommercialFollowup();
+
+      await loadAll();
+
+      activateView('commercial_processes');
+      showCommercialProcess(id);
+    };
 }
 
 async function createQuoteFromProcess(id){

@@ -68,7 +68,7 @@ function openForm(collection, id = null, defaults = {}) {
     input.readOnly = true;
     input.style.background = '#f3f3f3';
   }
-});s
+});
   /*
    * Si estamos editando, cargamos los datos existentes.
    * Los datos existentes tienen prioridad sobre los defaults.
@@ -141,6 +141,22 @@ recordForm.onsubmit = async event => {
 
   closeForm();
   await loadAll();
+
+  if (
+    savedCollection === 'commercial_processes' &&
+    !savedEditingId
+  ) {
+    activateView('commercial_processes');
+
+    if (
+      result?.id &&
+      typeof showCommercialProcess === 'function'
+    ) {
+      showCommercialProcess(result.id);
+    }
+
+    return;
+  }
 
   if (
     savedCollection === 'clients' &&

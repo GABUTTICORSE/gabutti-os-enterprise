@@ -429,7 +429,7 @@ function createRecord({
       );
 
     if (!historyExists) {
-      addHistory(db, {
+      addHistory({
         processId:
           item.processId,
 

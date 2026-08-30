@@ -37,7 +37,7 @@ function renderClientShell(c,i){
  const executive=currentUser?.role==='Executive';
  const whatsappButton=c.whatsapp?`<button class="secondary" onclick="openClientWhatsApp('${esc(c.id)}')">WhatsApp</button>`:'';
  return `<div class="client-v1">
-  <div class="client-v1-header"><div><div class="client-code">${esc(c.number||'CLI-PENDIENTE')}</div><h2>${esc(c.name||c.businessName||'Cliente')}</h2><p>${esc(c.rut||'-')} · ${esc(c.clientType||'-')} · Ejecutivo: ${esc(c.owner||'-')}</p></div><div class="client-v1-actions"><button onclick="openForm('clients','${esc(c.id)}')">Editar</button>${executive?`<button class="secondary" onclick="refreshClientRut('${esc(c.id)}','${esc(c.rut)}')">Actualizar desde SRE</button>`:''}${whatsappButton}<button class="secondary" onclick="generateQuoteFromClient('${esc(c.id)}')">Cotizar</button></div></div>
+  <div class="client-v1-header"><div><div class="client-code">${esc(c.number||'CLI-PENDIENTE')}</div><h2>${esc(c.name||c.businessName||'Cliente')}</h2><p>${esc(c.rut||'-')} · ${esc(c.clientType||'-')} · Ejecutivo: ${esc(c.owner||'-')}</p></div><div class="client-v1-actions"><button onclick="openForm('clients','${esc(c.id)}')">Editar</button>${executive?`<button class="secondary" onclick="refreshClientRut('${esc(c.id)}','${esc(c.rut)}')">Actualizar desde SRE</button>`:''}${whatsappButton}<button class="secondary" onclick="createBusinessFromClient('${esc(c.id)}')">+ Crear negocio</button></div></div>
   <div class="client-summary-grid">
    ${metric('Clasificación',i.classification,'ABC automático')}${metric('Puntaje',i.score+'/100',i.trend)}${metric('Relación',i.relationship,'Evaluación integral',color)}${metric('Compras 90 días',i.purchases90,'Últimos 3 meses')}${metric('Pagos',i.paymentScore+'%','Cumplimiento')}${metric('Compras 12 meses',money(i.total12m),'Volumen acumulado')}
   </div>
@@ -57,7 +57,40 @@ function tabTimeline(c){const all=[...(state.quotes||[]).filter(x=>clientMatches
 function tabExecutive(c,i){return `<h3>Evaluación Executive</h3><div class="executive-warning">Solo Andrea y José pueden ver y registrar esta información.</div><form onsubmit="saveExecutiveNote(event,'${esc(c.id)}')" class="executive-note-form"><label>Nota cualitativa</label><textarea name="text" required placeholder="Describe hechos concretos: conflictos, cambios de acuerdo, exigencias, riesgos o fortalezas relevantes."></textarea><div><select name="importance"><option>Media</option><option>Alta</option><option>Crítica</option></select><select name="recommendedColor"><option>Amarillo</option><option>Naranjo</option><option>Rojo</option><option>Verde</option></select><button>Guardar evaluación</button></div></form><h3>Notas vigentes</h3><div class="executive-notes">${(i.notes||[]).map(n=>`<div><b>${esc(n.importance)} · ${esc(n.recommendedColor)}</b><p>${esc(n.text)}</p><small>${esc(n.author)} · ${new Date(n.createdAt).toLocaleString('es-CL')}</small></div>`).join('')||'<p class="meta">Sin notas ejecutivas.</p>'}</div>`;}
 async function saveExecutiveNote(e,id){e.preventDefault();const f=e.target;const r=await api('/api/client-note/'+id,{method:'POST',body:JSON.stringify({text:f.text.value,importance:f.importance.value,recommendedColor:f.recommendedColor.value})});if(r.error)return alert(r.error);await loadAll();showClientProfile(id);}
 function tabAudit(i){return `<h3>Auditoría</h3><div class="client-timeline-v1">${(i.audit||[]).map(a=>`<div><time>${new Date(a.createdAt).toLocaleString('es-CL')}</time><strong>${esc(a.action)}</strong><span>${esc(a.actor)} · ${esc(a.detail||'')}</span></div>`).join('')||'<p class="meta">Sin cambios registrados.</p>'}</div>`;}
-function generateQuoteFromClient(id){const c=clientById(id);if(!c)return;activateView('quotes');openForm('quotes',null,{clientId:c.id,clientName:c.name,status:'Borrador',owner:c.owner||'Andrea'});}
+function createBusinessFromClient(id){
+  const c = clientById(id);
+  if(!c) return;
+
+  const clientName =
+    c.name ||
+    c.businessName ||
+    '';
+
+  openForm(
+    'commercial_processes',
+    null,
+    {
+      clientId: c.id,
+      clientNumber: c.number || '',
+      clientName: clientName,
+      clientRut: c.rut || '',
+      clientBusinessName: c.businessName || '',
+      clientEmail: c.email || '',
+      clientWhatsapp: c.whatsapp || '',
+      clientDiscipline: c.discipline || '',
+      clientLevel: c.level || '',
+      clientSource: c.source || '',
+      clientPriceList: c.priceList || '',
+      clientPaymentCondition: c.paymentCondition || '',
+
+      status: 'Nuevo',
+      owner: c.owner || 'Andrea',
+      nextAction: '',
+      nextDate: '',
+      source: 'Ficha Cliente'
+    }
+  );
+}
 
 async function refreshClientRut(clientId,rut){
  if(!confirm('Actualizar los datos tributarios desde SRE? Las correcciones comerciales del cliente no serán eliminadas.'))return;

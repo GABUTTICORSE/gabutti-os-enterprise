@@ -5,6 +5,7 @@ const {
   runCreationAutomations
 } = require('./automation');
 const { createRecord } = require("./crud");
+const { getTodayMotorsportNews } = require('./motorsport/news.service');
 const { sendTextMessage } = require('./integrations/whatsapp/whatsapp.client');
 const { readDB, writeDB } = require('./database');
 const { nextNumber } = require('./numbers');
@@ -267,19 +268,271 @@ function addClientAudit(db, clientId, actor, action, detail){
 }
 
 function dashboard(db){
-  const open=db.commercial_processes.filter(x=>!['Perdido','Entregado','Cerrado'].includes(x.status)).length;
-  const tasks=db.tasks.filter(x=>x.status!=='Hecha').length;
-  const stock=db.stock.filter(x=>Number(x.available||0)<=Number(x.minimum||0)).length;
-  const imps=db.imports.filter(x=>x.status!=='Entregada').length;
-  const cxc=db.finance.filter(x=>x.type==='Cobro'&&x.status!=='Cobrado').reduce((s,x)=>s+Number(x.amount||0),0);
-  const cxp=db.finance.filter(x=>x.type==='Pago'&&x.status!=='Pagado').reduce((s,x)=>s+Number(x.amount||0),0);
-  let priorities=[];
-  db.commercial_processes.filter(x=>['Nuevo','Esperando Pago','Esperando pago','Esperando respuesta'].includes(x.status)).forEach(x=>priorities.push({priority:(x.status==='Esperando Pago'||x.status==='Esperando pago')?'Alta':'Media',module:'Comercial',title:(x.clientName||'Cliente')+' - '+(x.product||'Producto'),detail:(x.status||'-')+' · $'+Number(x.value||0).toLocaleString('es-CL')}));
-  db.stock.filter(x=>Number(x.available||0)<=Number(x.minimum||0)).forEach(x=>priorities.push({priority:'Alta',module:'Stock',title:'Stock crítico: '+x.product,detail:'Disponible '+(x.available||0)+' / mínimo '+(x.minimum||0)}));
-  db.imports.filter(x=>x.critical==='Sí'||['Pago Tuvia','En aduana','Detenida'].includes(x.status)).forEach(x=>priorities.push({priority:'Alta',module:'Importaciones',title:(x.supplier||'Proveedor')+' - '+(x.description||'Importación'),detail:(x.status||'-')+' · ETA '+(x.eta||'-')}));
-  db.tasks.filter(x=>x.status!=='Hecha').slice(0,10).forEach(x=>priorities.push({priority:'Media',module:'Tareas',title:x.title,detail:(x.owner||'-')+' · '+(x.dueDate||'-')}));
-  return {health:Math.max(0,100-open*2-tasks*2-stock*10-imps*5),kpis:{openProcesses:open,pendingTasks:tasks,criticalStock:stock,activeImports:imps,receivable:cxc,payable:cxp},priorities:priorities.slice(0,20)};
+
+  const processes = db.commercial_processes || [];
+  const tasksData = db.tasks || [];
+  const stockData = db.stock || [];
+  const importsData = db.imports || [];
+  const financeData = db.finance || [];
+
+  const open = processes.filter(
+    x => !['Perdido','Entregado','Cerrado'].includes(x.status)
+  ).length;
+
+  const tasks = tasksData.filter(
+    x => x.status !== 'Hecha'
+  ).length;
+
+  const stock = stockData.filter(
+    x => Number(x.available || 0) <= Number(x.minimum || 0)
+  ).length;
+
+  const imps = importsData.filter(
+    x => x.status !== 'Entregada'
+  ).length;
+
+  const cxc = financeData
+    .filter(x => x.type === 'Cobro' && x.status !== 'Cobrado')
+    .reduce((s,x) => s + Number(x.amount || 0), 0);
+
+  const cxp = financeData
+    .filter(x => x.type === 'Pago' && x.status !== 'Pagado')
+    .reduce((s,x) => s + Number(x.amount || 0), 0);
+
+  const priorities = [];
+
+  function commercialSemaphore(nextDate){
+
+    if(!nextDate){
+      return {
+        level:'yellow',
+        priority:'Media',
+        label:'Sin fecha'
+      };
+    }
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const followup = new Date(nextDate + 'T00:00:00');
+    followup.setHours(0,0,0,0);
+
+    const diffDays =
+      Math.round((followup - today) / 86400000);
+
+    if(diffDays < 0){
+      return {
+        level:'red',
+        priority:'Alta',
+        label:
+          'Vencido hace ' +
+          Math.abs(diffDays) +
+          (Math.abs(diffDays) === 1 ? ' día' : ' días')
+      };
+    }
+
+    if(diffDays === 0){
+      return {
+        level:'yellow',
+        priority:'Media',
+        label:'Hoy'
+      };
+    }
+
+    if(diffDays === 1){
+      return {
+        level:'yellow',
+        priority:'Media',
+        label:'Mañana'
+      };
+    }
+
+    return {
+      level:'green',
+      priority:'Baja',
+      label:'En ' + diffDays + ' días'
+    };
+  }
+
+  /*
+   * PROCESOS COMERCIALES
+   * Una sola alerta por proceso.
+   */
+  processes
+    .filter(x =>
+      !['Perdido','Entregado','Cerrado'].includes(x.status)
+    )
+    .forEach(x => {
+
+      const semaphore =
+        commercialSemaphore(x.nextDate);
+
+      priorities.push({
+        priority: semaphore.priority,
+        semaphoreLevel: semaphore.level,
+        semaphoreLabel: semaphore.label,
+
+        module:'Comercial',
+
+        title:
+          (x.clientName || 'Cliente') +
+          ' - ' +
+          (x.product || 'Proceso comercial'),
+
+        detail:
+          (x.nextAction || 'Sin próxima acción') +
+          ' · ' +
+          (x.nextDate || 'Sin fecha'),
+
+        targetView:'commercial_processes',
+        targetType:'commercial_process',
+        targetId:x.id,
+
+        processId:x.id,
+        clientId:x.clientId || ''
+      });
+    });
+
+  /*
+   * STOCK CRITICO
+   */
+  stockData
+    .filter(
+      x =>
+        Number(x.available || 0) <=
+        Number(x.minimum || 0)
+    )
+    .forEach(x => {
+
+      priorities.push({
+        priority:'Alta',
+        semaphoreLevel:'red',
+        semaphoreLabel:'Stock crítico',
+
+        module:'Stock',
+
+        title:
+          'Stock crítico: ' +
+          (x.product || x.sku || 'Producto'),
+
+        detail:
+          'Disponible ' +
+          (x.available || 0) +
+          ' / mínimo ' +
+          (x.minimum || 0),
+
+        targetView:'stock',
+        targetType:'stock',
+        targetId:x.id
+      });
+    });
+
+  /*
+   * IMPORTACIONES
+   */
+  importsData
+    .filter(
+      x =>
+        x.critical === 'Sí' ||
+        ['Pago Tuvia','En aduana','Detenida']
+          .includes(x.status)
+    )
+    .forEach(x => {
+
+      priorities.push({
+        priority:'Alta',
+        semaphoreLevel:'red',
+        semaphoreLabel:'Requiere acción',
+
+        module:'Importaciones',
+
+        title:
+          (x.supplier || 'Proveedor') +
+          ' - ' +
+          (x.description || 'Importación'),
+
+        detail:
+          (x.status || '-') +
+          ' · ETA ' +
+          (x.eta || '-'),
+
+        targetView:'imports',
+        targetType:'import',
+        targetId:x.id
+      });
+    });
+
+  /*
+   * TAREAS
+   *
+   * No repetimos las tareas automáticas de seguimiento
+   * cuando ya existe el proceso comercial como fuente
+   * principal del semáforo.
+   */
+  tasksData
+    .filter(x => x.status !== 'Hecha')
+    .filter(x => {
+      const title =
+        String(x.title || '').toLowerCase();
+
+      return !title.startsWith(
+        'seguimiento proceso:'
+      );
+    })
+    .slice(0,10)
+    .forEach(x => {
+
+      const due = x.dueDate
+        ? commercialSemaphore(x.dueDate)
+        : {
+            level:'yellow',
+            priority:'Media',
+            label:'Pendiente'
+          };
+
+      priorities.push({
+        priority:due.priority,
+        semaphoreLevel:due.level,
+        semaphoreLabel:due.label,
+
+        module:'Tareas',
+        title:x.title || 'Tarea pendiente',
+
+        detail:
+          (x.owner || '-') +
+          ' · ' +
+          (x.dueDate || 'Sin fecha'),
+
+        targetView:'tasks',
+        targetType:'task',
+        targetId:x.id
+      });
+    });
+
+  return {
+    health:
+      Math.max(
+        0,
+        100 -
+        open * 2 -
+        tasks * 2 -
+        stock * 10 -
+        imps * 5
+      ),
+
+    kpis:{
+      openProcesses:open,
+      pendingTasks:tasks,
+      criticalStock:stock,
+      activeImports:imps,
+      receivable:cxc,
+      payable:cxp
+    },
+
+    priorities:priorities.slice(0,50)
+  };
 }
+
 function demo(authUser){
   const now=new Date().toISOString();
   const preservedUser={...authUser};
@@ -330,6 +583,27 @@ if(automationsChanged){
   if(c==='me'&&req.method==='GET')return js(res,200,{user:sanitizeUser(authUser),session:{createdAt:session.createdAt,expiresAt:session.expiresAt}});
   if(c==='identity'&&req.method==='GET')return js(res,200,{organization:authUser.organization||'Gabutti Corse',people:(db.users||[]).map(sanitizeUser),roles:db.roles||[],accessLog:(db.activity||[]).filter(x=>['login','login_failed','logout'].includes(x.action)).slice(0,25)});
   if(c==='dashboard'&&req.method==='GET')return js(res,200,dashboard(db));
+  if(c==='motorsport' && id==='news' && req.method==='GET'){
+    try{
+      const items = await getTodayMotorsportNews(12);
+
+      return js(res,200,{
+        ok:true,
+        updatedAt:new Date().toISOString(),
+        items
+      });
+
+    }catch(error){
+      console.error('Motorsport LIVE error:', error);
+
+      return js(res,503,{
+        ok:false,
+        error:'No fue posible actualizar Motorsport LIVE.',
+        items:[]
+      });
+    }
+  }
+
 if(c==='rut-lookup' && req.method==='GET'){
   const rut = decodeURIComponent(id || '');
 
@@ -427,7 +701,7 @@ if(c==='rut-lookup' && req.method==='GET'){
     writeDB(db);return js(res,201,note);
   }
   if(c==='db'&&req.method==='GET'){const safeDb={...db,users:(db.users||[]).map(sanitizeUser)};return js(res,200,safeDb);}
-  if(c==='demo'&&req.method==='POST'){db=demo(authUser);writeDB(db);return js(res,200,{ok:true})}
+  if(c==='demo'&&req.method==='POST'){return js(res,403,{ok:false,error:'Demo deshabilitado'})}
   if(c==='whatsapp-send' && req.method==='POST'){
   const inbox = (db.inbox || []).find(item => item.id === id);
 
