@@ -3,9 +3,13 @@ const path = require("path");
 const { hashPassword } = require("./auth");
 
 const ROOT = path.join(__dirname, "..", "..");
-const DATABASE_DIR = path.join(ROOT, "database");
+const DEFAULT_DATABASE_DIR = path.join(ROOT, "database");
+
+const DATABASE_DIR =
+  String(process.env.GS_ONE_DATA_DIR || "").trim() ||
+  DEFAULT_DATABASE_DIR;
 const DB = path.join(DATABASE_DIR, "db.json");
-const DB_EXAMPLE = path.join(DATABASE_DIR, "db.example.json");
+const DB_EXAMPLE = path.join(DEFAULT_DATABASE_DIR, "db.example.json");
 
 function ensureDB() {
   if (fs.existsSync(DB)) {
