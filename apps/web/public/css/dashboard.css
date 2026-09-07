@@ -537,7 +537,7 @@ body:has(#appView:not(.hidden)),
   color: #111;
   background: linear-gradient(110deg, #39ff14, #9aff83);
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   white-space: nowrap;
 }
@@ -574,7 +574,7 @@ body:has(#appView:not(.hidden)),
 }
 
 .motorsport-track {
-  min-height: 52px;
+  min-height: 58px;
   width: max-content;
   display: flex;
   align-items: center;
@@ -582,13 +582,13 @@ body:has(#appView:not(.hidden)),
   padding-left: 100%;
 
   animation:
-    tickerMove 42s linear infinite;
+    tickerMove 95s linear infinite;
 }
 
 .motorsport-track span {
   position: relative;
   color: #eef2f4;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 650;
   white-space: nowrap;
 }
@@ -603,6 +603,33 @@ body:has(#appView:not(.hidden)),
   border-radius: 50%;
   background: var(--dash-green);
   transform: translateY(-50%);
+}
+
+
+.motorsport-track a {
+  position: relative;
+  color: #eef2f4;
+  font-size: 15px;
+  font-weight: 650;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.motorsport-track a::before {
+  content: "";
+  position: absolute;
+  left: -29px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dash-green);
+  transform: translateY(-50%);
+}
+
+.motorsport-track a:hover {
+  color: #ffffff;
+  text-decoration: underline;
 }
 
 .motorsport-live:hover .motorsport-track { animation-play-state: paused; }
@@ -1044,7 +1071,7 @@ body:has(#appView:not(.hidden)),
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .motorsport-track { animation-duration: 90s; }
+  .motorsport-track { animation-duration: 105s; }
   .motorsport-label i { animation: none; }
   .exec-kpi,
   #appView nav .nav { transition: none; }
@@ -1071,7 +1098,7 @@ body:has(#appView:not(.hidden)),
 
 #dashboard .motorsport-label { font-size: 12px; }
 #dashboard .motorsport-label b { font-size: 9px; }
-#dashboard .motorsport-track span { font-size: 13px; }
+#dashboard .motorsport-track span { font-size: 15px; }
 #dashboard .motorsport-signature { font-size: 9px; }
 
 #dashboard .exec-kpi-label { font-size: 13px; }
@@ -1108,3 +1135,879 @@ body:has(#appView:not(.hidden)),
   #appView > .executive-header .header-title h1 { font-size: 30px; }
   #appView nav .nav { font-size: 14px; }
 }
+/* FIX RESPONSIVE LOGO SALUDO */
+.welcome-logo-box {
+  width: 100%;
+  min-width: 0;
+}
+
+.welcome-logo-box img {
+  width: 100%;
+  max-width: 162px;
+  height: auto;
+  margin: 0 auto;
+}
+
+@media (max-width: 1250px) {
+  .welcome-brand {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .welcome-logo-box img {
+    max-width: 120px;
+  }
+}
+
+
+/* =========================================================
+   SEMAFORO OPERACIONAL
+   ========================================================= */
+
+.operational-semaphore {
+  display: grid;
+  grid-template-columns: 210px minmax(240px, 1fr) minmax(280px, 1.2fr);
+  align-items: center;
+  gap: 24px;
+
+  min-height: 118px;
+  padding: 22px 26px;
+
+  border: 1px solid var(--dash-border);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: var(--dash-shadow);
+}
+
+.semaphore-state {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.semaphore-light {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+
+  border-radius: 50%;
+  background: #39ff14;
+  box-shadow: 0 0 0 7px rgba(57, 255, 20, 0.12);
+}
+
+.semaphore-state small {
+  display: block;
+  margin-bottom: 4px;
+
+  color: var(--dash-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.semaphore-state strong {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.semaphore-message {
+  min-width: 0;
+}
+
+.semaphore-message strong {
+  display: block;
+  margin-bottom: 5px;
+
+  font-size: 17px;
+  font-weight: 850;
+}
+
+.semaphore-message span {
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.semaphore-items {
+  display: grid;
+  gap: 7px;
+}
+
+.semaphore-item {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  align-items: center;
+  gap: 10px;
+
+  padding: 7px 10px;
+
+  border: 1px solid rgba(16, 24, 32, 0.08);
+  border-radius: 9px;
+  background: rgba(16, 24, 32, 0.025);
+}
+
+.semaphore-item-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff9f0a;
+}
+
+.semaphore-item.critical .semaphore-item-dot {
+  background: #ff2d55;
+}
+
+.semaphore-item strong {
+  display: block;
+  overflow: hidden;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.semaphore-item small {
+  display: block;
+
+  color: var(--dash-muted);
+  font-size: 9px;
+}
+
+.semaphore-empty {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.operational-semaphore.is-attention .semaphore-light {
+  background: #ff9f0a;
+  box-shadow: 0 0 0 7px rgba(255, 159, 10, 0.13);
+}
+
+.operational-semaphore.is-critical .semaphore-light {
+  background: #ff2d55;
+  box-shadow: 0 0 0 7px rgba(255, 45, 85, 0.13);
+}
+
+.operational-semaphore.is-attention .semaphore-state strong {
+  color: #c66e00;
+}
+
+.operational-semaphore.is-critical .semaphore-state strong {
+  color: #c8102e;
+}
+
+@media (max-width: 1050px) {
+  .operational-semaphore {
+    grid-template-columns: 180px 1fr;
+  }
+
+  .semaphore-items {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .operational-semaphore {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .semaphore-items {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   WELCOME V4 · CRONOGRAFO + WEATHER
+   ========================================================= */
+
+.welcome-content h2 {
+  font-size: clamp(30px, 2.75vw, 44px);
+  margin-bottom: 16px;
+}
+
+.welcome-context-premium {
+  display: grid;
+  grid-template-columns:
+    minmax(250px, .9fr)
+    minmax(330px, 1.25fr);
+  gap: 12px;
+}
+
+.dashboard-chrono,
+.dashboard-weather {
+  min-width: 0;
+  min-height: 118px;
+
+  border: 1px solid var(--dash-border);
+  border-radius: 15px;
+  background: #f7f9fa;
+}
+
+.dashboard-chrono {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+
+  padding: 14px 18px;
+}
+
+.chrono-dial {
+  position: relative;
+
+  width: 82px;
+  height: 82px;
+
+  border: 5px solid #20282d;
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      #ffffff 0 49%,
+      transparent 50%
+    ),
+    repeating-conic-gradient(
+      from -1deg,
+      #7f8a90 0deg 1deg,
+      transparent 1deg 6deg
+    );
+
+  box-shadow:
+    inset 0 0 0 5px #eef1f2;
+}
+
+.chrono-hand {
+  position: absolute;
+  z-index: 2;
+
+  left: 50%;
+  bottom: 50%;
+
+  width: 2px;
+  height: 33px;
+
+  background: #c8102e;
+  border-radius: 2px;
+
+  transform-origin: 50% 100%;
+  transform: translateX(-50%) rotate(0deg);
+}
+
+.chrono-center {
+  position: absolute;
+  z-index: 3;
+
+  left: 50%;
+  top: 50%;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+  background: #c8102e;
+
+  transform: translate(-50%, -50%);
+}
+
+.chrono-info {
+  min-width: 0;
+}
+
+.chrono-info small,
+.weather-copy small {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: var(--dash-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.chrono-info b {
+  display: block;
+
+  font-size: clamp(21px, 2vw, 28px);
+  line-height: 1;
+}
+
+.chrono-info span {
+  display: block;
+
+  margin-top: 7px;
+
+  color: var(--dash-muted);
+  font-size: 11px;
+}
+
+.dashboard-weather {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+
+  padding: 14px 18px;
+}
+
+.weather-primary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  min-width: 0;
+}
+
+.weather-icon {
+  flex: 0 0 50px;
+
+  width: 50px;
+
+  color: #f5ad00;
+  font-size: 42px;
+  line-height: 1;
+  text-align: center;
+}
+
+.weather-copy {
+  min-width: 0;
+}
+
+.weather-copy > b {
+  display: block;
+
+  overflow: hidden;
+
+  font-size: 15px;
+  font-weight: 900;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-temperature-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  margin-top: 4px;
+}
+
+.weather-temperature-row strong {
+  font-size: 27px;
+  line-height: 1;
+}
+
+.weather-temperature-row span {
+  color: var(--dash-muted);
+  font-size: 10px;
+}
+
+.weather-details {
+  display: grid;
+  gap: 9px;
+
+  padding-left: 15px;
+
+  border-left: 1px solid var(--dash-border);
+}
+
+.weather-details span {
+  color: var(--dash-muted);
+  font-size: 9px;
+}
+
+.weather-details b {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #172027;
+  font-size: 11px;
+}
+
+.profile-photo-frame {
+  width: min(142px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.welcome-photo {
+  min-width: 0;
+}
+
+@media (max-width: 1250px) {
+  .welcome-context-premium {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-chrono {
+    grid-template-columns: 70px minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .chrono-dial {
+    width: 66px;
+    height: 66px;
+  }
+
+  .chrono-hand {
+    height: 26px;
+  }
+
+  .dashboard-weather {
+    padding: 12px;
+  }
+
+  .weather-icon {
+    flex-basis: 38px;
+    width: 38px;
+    font-size: 34px;
+  }
+
+  .weather-details {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .welcome-context-premium {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   GS ONE SPORT CHRONOGRAPH · DEFINITIVO
+   ========================================================= */
+
+.welcome-context-premium {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.dashboard-chrono-sport,
+.dashboard-weather {
+  min-height: 132px;
+  height: 132px;
+  box-sizing: border-box;
+}
+
+.dashboard-chrono-sport {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+
+  min-width: 0;
+  padding: 10px 18px;
+}
+
+.sport-watch {
+  width: 112px;
+  height: 112px;
+  display: grid;
+  place-items: center;
+}
+
+.sport-watch-face {
+  position: relative;
+
+  width: 108px;
+  height: 108px;
+
+  overflow: hidden;
+  border: 6px solid #31373b;
+  border-radius: 50%;
+
+  background:
+    repeating-conic-gradient(
+      from -1deg,
+      rgba(255,255,255,.95) 0deg 1deg,
+      transparent 1deg 6deg
+    ),
+    radial-gradient(
+      circle at 50% 46%,
+      #30363a 0%,
+      #111517 48%,
+      #040506 78%
+    );
+
+  box-shadow:
+    inset 0 0 0 4px #0b0e10,
+    inset 0 0 18px rgba(0,0,0,.9),
+    0 5px 12px rgba(18,24,28,.22),
+    0 0 0 2px #8c9499;
+}
+
+/* tapa el centro del repeating-conic y deja solo indices */
+.sport-watch-face::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 1;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      #242a2d 0%,
+      #101416 65%,
+      #060708 100%
+    );
+
+  box-shadow:
+    inset 0 0 14px rgba(0,0,0,.75);
+}
+
+/* marcas rojas principales */
+.sport-watch-face::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  z-index: 2;
+
+  border-radius: 50%;
+
+  background:
+    repeating-conic-gradient(
+      from -2deg,
+      #d20b2a 0deg 3deg,
+      transparent 3deg 30deg
+    );
+
+  -webkit-mask:
+    radial-gradient(
+      circle,
+      transparent 0 90%,
+      #000 91% 100%
+    );
+
+  mask:
+    radial-gradient(
+      circle,
+      transparent 0 90%,
+      #000 91% 100%
+    );
+}
+
+.sport-watch-brand {
+  position: absolute;
+  z-index: 5;
+
+  top: 22px;
+  left: 50%;
+
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.sport-watch-brand strong {
+  display: block;
+  color: white;
+  font-size: 8px;
+  font-weight: 900;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.sport-watch-brand strong i {
+  color: #d20b2a;
+  font-style: italic;
+}
+
+.sport-watch-brand small {
+  display: block;
+  margin-top: 1px;
+
+  color: #aeb5b9;
+  font-size: 3px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.sport-subdial {
+  position: absolute;
+  z-index: 4;
+
+  top: 43px;
+
+  width: 25px;
+  height: 25px;
+
+  border: 1px solid #60686d;
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      #22272a,
+      #050607 80%
+    );
+}
+
+.sport-subdial-left {
+  left: 16px;
+}
+
+.sport-subdial-right {
+  right: 16px;
+}
+
+.sport-subdial span {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+
+  color: #dce1e4;
+  font-size: 4px;
+
+  transform: translateX(-50%);
+}
+
+.sport-subdial i {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+
+  width: 1px;
+  height: 8px;
+
+  background: #d20b2a;
+
+  transform:
+    translateX(-50%)
+    rotate(32deg);
+
+  transform-origin: 50% 100%;
+}
+
+.sport-hand {
+  position: absolute;
+  z-index: 8;
+
+  left: 50%;
+  bottom: 50%;
+
+  display: block;
+
+  transform-origin: 50% 100%;
+}
+
+.sport-hour {
+  width: 4px;
+  height: 23px;
+
+  border-radius: 4px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #929a9f,
+      #ffffff,
+      #727a7f
+    );
+}
+
+.sport-minute {
+  width: 3px;
+  height: 34px;
+
+  border-radius: 3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #aab1b5,
+      #ffffff,
+      #7f878c
+    );
+}
+
+.sport-second {
+  width: 2px;
+  height: 40px;
+
+  background: #e01432;
+  box-shadow: 0 0 3px rgba(224,20,50,.5);
+}
+
+.sport-watch-center {
+  position: absolute;
+  z-index: 10;
+
+  left: 50%;
+  top: 50%;
+
+  width: 8px;
+  height: 8px;
+
+  border: 2px solid #dce1e4;
+  border-radius: 50%;
+
+  background: #d20b2a;
+
+  transform: translate(-50%, -50%);
+}
+
+.sport-watch-digital {
+  position: absolute;
+  z-index: 7;
+
+  left: 50%;
+  bottom: 16px;
+
+  min-width: 43px;
+  padding: 2px 4px;
+
+  border: 1px solid #343b3f;
+  border-radius: 3px;
+
+  color: #edf1f3;
+  background: #030405;
+
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+
+  font-size: 6px;
+  font-weight: 800;
+  text-align: center;
+
+  transform: translateX(-50%);
+}
+
+.dashboard-chrono-sport .chrono-info {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-chrono-sport .chrono-info small {
+  margin-bottom: 6px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.dashboard-chrono-sport .chrono-info b {
+  display: block;
+
+  overflow: hidden;
+
+  font-size: clamp(21px, 1.9vw, 28px);
+  line-height: 1;
+  letter-spacing: -.035em;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-chrono-sport .chrono-info span {
+  display: block;
+
+  margin-top: 7px;
+
+  overflow: hidden;
+
+  color: var(--dash-muted);
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* clima con exactamente el mismo peso visual */
+.dashboard-weather {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+@media (max-width: 1250px) {
+
+  .dashboard-chrono-sport {
+    grid-template-columns:
+      92px minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px 12px;
+  }
+
+  .sport-watch,
+  .sport-watch-face {
+    width: 88px;
+    height: 88px;
+  }
+
+  .sport-watch-face {
+    border-width: 5px;
+  }
+
+  .sport-watch-brand {
+    top: 17px;
+  }
+
+  .sport-subdial {
+    top: 34px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .sport-subdial-left {
+    left: 12px;
+  }
+
+  .sport-subdial-right {
+    right: 12px;
+  }
+
+  .sport-hour {
+    height: 18px;
+  }
+
+  .sport-minute {
+    height: 27px;
+  }
+
+  .sport-second {
+    height: 32px;
+  }
+
+  .sport-watch-digital {
+    bottom: 12px;
+    font-size: 5px;
+  }
+}
+
+@media (max-width: 760px) {
+  .welcome-context-premium {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-chrono-sport,
+  .dashboard-weather {
+    height: auto;
+    min-height: 126px;
+  }
+}
+
+
+/* MOTORSPORT LIVE - enlaces interactivos */
+.motorsport-track {
+  pointer-events: auto !important;
+}
+
+.motorsport-track a {
+  pointer-events: auto !important;
+  cursor: pointer;
+}
+
