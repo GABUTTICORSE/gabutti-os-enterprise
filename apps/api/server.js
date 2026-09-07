@@ -785,6 +785,76 @@ if(c==='rut-lookup' && req.method==='GET'){
     const updatedItem = db[c][index];
     if(c==='clients') addClientAudit(db,id,authUser,'Ficha actualizada',Object.keys(requestBody).join(', '));
 
+
+    if(
+      c === 'quotes' &&
+      requestBody.status === 'Enviada'
+    ){
+      const process = (db.commercial_processes || []).find(item =>
+        item.id === updatedItem.processId
+      );
+
+      const sentAt =
+        updatedItem.sentAt ||
+        new Date().toISOString();
+
+      updatedItem.sentAt = sentAt;
+
+      const followupDate = new Date(sentAt);
+      followupDate.setDate(followupDate.getDate() + 3);
+
+      const nextDate =
+        followupDate.toISOString().slice(0,10);
+
+      const isExtension =
+        updatedItem.quoteType === 'Ampliación';
+
+      if(process && !isExtension){
+        process.status = 'Cotización enviada';
+        process.nextAction = 'Hacer seguimiento';
+        process.nextDate = nextDate;
+        process.updatedAt = new Date().toISOString();
+      }
+
+      if(process && isExtension){
+        process.updatedAt = new Date().toISOString();
+      }
+
+      if(
+        !hasHistory(
+          db,
+          updatedItem.processId,
+          'Cotización enviada',
+          updatedItem.id
+        )
+      ){
+        addHistory(db,{
+          processId: updatedItem.processId || '',
+          clientId: updatedItem.clientId || '',
+          clientName: updatedItem.clientName || '',
+          type: 'Cotización',
+          title: 'Cotización enviada',
+          description:
+            `${updatedItem.number || updatedItem.id} enviada al cliente`,
+          sourceId: updatedItem.id
+        });
+      }
+
+      log(
+        db,
+        'update',
+        c,
+        `Cotización enviada al cliente ${updatedItem.id}`
+      );
+
+      writeDB(db);
+
+      return js(res,200,{
+        quote: updatedItem,
+        process
+      });
+    }
+
     if(c === 'quotes' && requestBody.status === 'Aceptada'){
       db.sales_orders = db.sales_orders || [];
 
@@ -839,8 +909,21 @@ if(c==='rut-lookup' && req.method==='GET'){
         item.id === updatedItem.processId
       );
 
-      if(process){
-        process.status = 'Venta Confirmada';
+      const isExtension =
+        updatedItem.quoteType === 'Ampliación';
+
+      if(process && !isExtension){
+        const now = new Date().toISOString();
+
+        process.status = 'Ganado';
+        process.nextAction = '';
+        process.nextDate = '';
+        process.closedAt = process.closedAt || now;
+        process.updatedAt = now;
+      }
+
+      if(process && isExtension){
+        process.updatedAt = new Date().toISOString();
       }
 
       if(
@@ -873,6 +956,68 @@ if(c==='rut-lookup' && req.method==='GET'){
       return js(res,200,{
         quote: updatedItem,
         order
+      });
+    }
+
+
+    if(
+      c === 'quotes' &&
+      requestBody.status === 'Rechazada'
+    ){
+      const process = (db.commercial_processes || []).find(item =>
+        item.id === updatedItem.processId
+      );
+
+      const isExtension =
+        updatedItem.quoteType === 'Ampliación';
+
+      if(process && !isExtension){
+        process.status = 'Perdido';
+        process.closedAt = new Date().toISOString();
+        process.closeReason =
+          String(requestBody.rejectionReason || '').trim() ||
+          'Cotización rechazada';
+      }
+
+      if(process && isExtension){
+        process.updatedAt = new Date().toISOString();
+      }
+
+      if(
+        !hasHistory(
+          db,
+          updatedItem.processId,
+          'Cotización rechazada',
+          updatedItem.id
+        )
+      ){
+        addHistory(db,{
+          processId: updatedItem.processId || '',
+          clientId: updatedItem.clientId || '',
+          clientName: updatedItem.clientName || '',
+          type: 'Cotización',
+          title: 'Cotización rechazada',
+          description:
+            `${updatedItem.number || updatedItem.id} fue rechazada` +
+            (String(requestBody.rejectionReason || '').trim()
+              ? ` · Motivo: ${String(requestBody.rejectionReason).trim()}`
+              : ''),
+          sourceId: updatedItem.id
+        });
+      }
+
+      log(
+        db,
+        'update',
+        c,
+        `Cotización rechazada ${updatedItem.id}`
+      );
+
+      writeDB(db);
+
+      return js(res,200,{
+        quote: updatedItem,
+        process
       });
     }
 

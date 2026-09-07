@@ -61,12 +61,22 @@ function commercialFollowupStatus(nextDate){
 
 function processCard(p){
   const color = processStatusColor(p.status || '');
-  const followup = commercialFollowupStatus(p.nextDate);
+
+  const isClosed =
+    ['Ganado','Perdido'].includes(p.status);
+
+  const followup = isClosed
+    ? {
+        label:'Cerrado',
+        color:'gray'
+      }
+    : commercialFollowupStatus(p.nextDate);
 
   return `
     <div class="process-card" onclick="showCommercialProcess('${p.id}')">
       <div>
-        <h3>${p.number || p.id} · ${p.product || 'Proceso comercial'}</h3>
+        <div class="record-code">${p.number || p.id}</div>
+        <h3>${p.product || 'Proceso comercial'}</h3>
         <p class="meta">${p.clientName || '-'} · ${p.owner || '-'}</p>
         <p class="meta">
           Seguimiento: ${p.nextDate || 'Sin fecha'}
@@ -103,7 +113,15 @@ function showCommercialProcess(id){
   const profile = document.getElementById('commercialProfile');
   if(!profile) return;
 
-  const followup = commercialFollowupStatus(process.nextDate);
+  const isClosed =
+    ['Ganado','Perdido'].includes(process.status);
+
+  const followup = isClosed
+    ? {
+        label:'Cerrado',
+        color:'gray'
+      }
+    : commercialFollowupStatus(process.nextDate);
 
   profile.innerHTML = `
     <h2>${process.clientName}</h2>
@@ -143,13 +161,27 @@ function showCommercialProcess(id){
       </div>
     </div>
 
-    <div class="quick-actions">
-      <button onclick="registerCommercialFollowup('${process.id}')">📞 Registrar seguimiento</button>
-      <button onclick="createQuoteFromProcess('${process.id}')">📄 Generar cotización</button>
-      <button>💰 Registrar pago</button>
-      <button>📦 Reservar stock</button>
-      <button>🚚 Programar despacho</button>
-    </div>
+    ${
+      ['Ganado','Perdido'].includes(process.status)
+        ? `<div class="quick-actions">
+            <span class="tag ${
+              process.status === 'Ganado' ? 'green' : 'gray'
+            }">
+              ${
+                process.status === 'Ganado'
+                  ? '✅ Proceso comercial ganado'
+                  : '⛔ Proceso comercial cerrado como perdido'
+              }
+            </span>
+          </div>`
+        : `<div class="quick-actions">
+            <button onclick="registerCommercialFollowup('${process.id}')">📞 Registrar seguimiento</button>
+            <button onclick="createQuoteFromProcess('${process.id}')">📄 Generar cotización</button>
+            <button>💰 Registrar pago</button>
+            <button>📦 Reservar stock</button>
+            <button>🚚 Programar despacho</button>
+          </div>`
+    }
 
     <h3 style="margin-top:25px">Tareas relacionadas</h3>
 
@@ -306,12 +338,15 @@ if(commercialFollowupForm){
         return;
       }
 
-      if(!nextAction){
+      const isClosedStatus =
+        ['Ganado','Perdido'].includes(status);
+
+      if(!isClosedStatus && !nextAction){
         alert('Debes definir la próxima acción.');
         return;
       }
 
-      if(!nextDate){
+      if(!isClosedStatus && !nextDate){
         alert('Debes definir la fecha del próximo seguimiento.');
         return;
       }
@@ -329,8 +364,12 @@ if(commercialFollowupForm){
                 status || process.status,
               owner:
                 owner || process.owner,
-              nextAction,
-              nextDate,
+              nextAction:
+                isClosedStatus ? '' : nextAction,
+              nextDate:
+                isClosedStatus ? '' : nextDate,
+              closedAt:
+                isClosedStatus ? now : (process.closedAt || ''),
               lastFollowupAt:now,
               lastFollowupResult:result
             })
@@ -508,8 +547,9 @@ list.innerHTML = orderedQuotes.map(q => `
 >
 
       <div>
-        <h3>${q.number || q.id} · ${q.clientName || 'Cliente'}</h3>
-        <p class="meta">${q.product}</p>
+        <div class="record-code">${q.number || q.id}</div>
+        <h3>${q.clientName || 'Cliente'}</h3>
+        <p class="meta">${q.product || 'Sin producto definido'}</p>
       </div>
 
       <div class="process-right">
@@ -583,11 +623,17 @@ function showQuote(id){
 
     <h3 style="margin-top:25px">Productos</h3>
 
-    <div class="quick-actions">
-      <button onclick="openQuoteItemForm('${quote.id}')">
-        ➕ Agregar producto
-      </button>
-    </div>
+    ${
+      quote.status === 'Borrador'
+        ? `
+          <div class="quick-actions">
+            <button onclick="openQuoteItemForm('${quote.id}')">
+              ➕ Agregar producto
+            </button>
+          </div>
+        `
+        : ''
+    }
 
     ${
       quoteItems.length
@@ -680,13 +726,29 @@ ${
     : ''
 }
 
-<button onclick="acceptQuote('${quote.id}')">
-  ✅ Aceptar
-</button>
+${
+  quote.status === 'Aceptada'
+    ? `
+      <button onclick="extendAcceptedQuote('${quote.id}')">
+        ➕ Ampliar cotización
+      </button>
+    `
+    : ''
+}
 
-<button onclick="rejectQuote('${quote.id}')">
-  ❌ Rechazar
-</button>
+${
+  ['Enviada','Esperando respuesta','Sin respuesta'].includes(quote.status)
+    ? `
+      <button onclick="acceptQuote('${quote.id}')">
+        ✅ Aceptar
+      </button>
+
+      <button onclick="rejectQuote('${quote.id}')">
+        ❌ Rechazar
+      </button>
+    `
+    : ''
+}
     </div>
   `;
     profile.scrollIntoView({
@@ -695,6 +757,112 @@ ${
   });
 }
 
+
+
+async function rejectQuote(id){
+
+  const quote = (state.quotes || [])
+    .find(q => q.id === id);
+
+  if(!quote){
+    alert('No se encontró la cotización.');
+    return;
+  }
+
+  const reason = prompt(
+    'Motivo del rechazo',
+    ''
+  );
+
+  if(reason === null) return;
+
+  if(!String(reason).trim()){
+    alert('Debes indicar el motivo del rechazo.');
+    return;
+  }
+
+  const confirmed = confirm(
+    '¿Confirmas rechazar esta cotización?\n\n' +
+    'Motivo: ' + String(reason).trim() + '\n\n' +
+    'El proceso comercial asociado quedará como Perdido.'
+  );
+
+  if(!confirmed) return;
+
+  const result = await api(
+    '/api/quotes/' + id,
+    {
+      method:'PUT',
+      body:JSON.stringify({
+        status:'Rechazada',
+        rejectedAt:new Date().toISOString(),
+        rejectionReason:String(reason).trim()
+      })
+    }
+  );
+
+  if(result?.error){
+    alert(result.error);
+    return;
+  }
+
+  await loadAll();
+
+  activateView('quotes');
+  showQuote(id);
+
+
+}
+
+
+async function extendAcceptedQuote(id){
+
+  const original = (state.quotes || [])
+    .find(q => q.id === id);
+
+  if(!original){
+    alert('No se encontró la cotización original.');
+    return;
+  }
+
+  if(original.status !== 'Aceptada'){
+    alert('Solo se puede ampliar una cotización aceptada.');
+    return;
+  }
+
+  const quote = await api('/api/quotes',{
+    method:'POST',
+    body:JSON.stringify({
+      clientId:original.clientId || '',
+      clientName:original.clientName || '',
+      processId:original.processId || '',
+      owner:original.owner || '',
+      product:'',
+      description:
+        'Ampliación de ' +
+        (original.number || original.id),
+      quantity:1,
+      unitPrice:0,
+      status:'Borrador',
+      parentQuoteId:original.id,
+      parentQuoteNumber:original.number || '',
+      quoteType:'Ampliación'
+    })
+  });
+
+  if(quote?.error){
+    alert(quote.error);
+    return;
+  }
+
+  await loadAll();
+
+  activateView('quotes');
+
+  if(quote?.id){
+    showQuote(quote.id);
+  }
+}
 
 async function acceptQuote(id){
   const result = await api('/api/quotes/'+id,{
@@ -733,7 +901,8 @@ function renderSalesOrders(){
   list.innerHTML = (state.sales_orders || []).map(o => `
     <div class="process-card" onclick="showSalesOrder('${o.id}')">
       <div>
-        <h3>${o.number || o.id} · ${o.clientName || 'Cliente'}</h3>
+        <div class="record-code">${o.number || o.id}</div>
+        <h3>${o.clientName || 'Cliente'}</h3>
         <p class="meta">${o.product || 'Producto'}</p>
       </div>
 
@@ -1007,62 +1176,165 @@ ${order.product}
   );
 
 }
+
+let currentQuoteProductQuoteId = null;
+
 function openQuoteItemForm(quoteId){
 
   const products = state.products || [];
 
   if(!products.length){
-    alert('No existen productos en el catálogo. Primero debes crear uno.');
+    alert('No existen productos en el catálogo.');
     return;
   }
 
-  const productList = products
-    .map((product, index) =>
-      `${index + 1}. ${product.sku || '-'} · ${product.name || 'Producto'}`
-    )
-    .join('\n');
+  currentQuoteProductQuoteId = quoteId;
 
-  const selection = prompt(
-    'Selecciona el producto.\n\n' +
-    'Puedes escribir el número, SKU o nombre:\n\n' +
-    productList
-  );
+  const modal =
+    document.getElementById('quoteProductModal');
 
-  if(!selection) return;
+  const search =
+    document.getElementById('quoteProductSearch');
 
-  console.log("Seleccionado:", selection);
-  console.log("Productos:", products);
+  const results =
+    document.getElementById('quoteProductResults');
 
-  const search = selection.trim().toLowerCase();
-  const numericIndex = Number(selection) - 1;
-
-  let product = null;
-
-  if(
-    Number.isInteger(numericIndex) &&
-    numericIndex >= 0 &&
-    numericIndex < products.length
-  ){
-    product = products[numericIndex];
+  if(!modal || !search || !results){
+    alert('No fue posible abrir el buscador de productos.');
+    return;
   }
-console.log("Producto encontrado:", product);
 
-if(!product){
-  product = products.find(item =>
-    String(item.sku || '').toLowerCase() === search ||
-    String(item.name || '').toLowerCase() === search
-  );
+  search.value = '';
+  results.innerHTML =
+    '<p class="meta">Escribe SKU, producto o marca para buscar.</p>';
+
+  search.oninput = () =>
+    renderQuoteProductSearch(search.value);
+
+  modal.showModal();
+
+  setTimeout(() => {
+    search.focus();
+  }, 50);
 }
 
-console.log("Producto encontrado:", product);
 
-if(!product){
-  alert(
-    'Producto no encontrado.\n\n' +
-    'Escribe el número de la lista, el SKU exacto o el nombre exacto.'
-  );
-  return;
+function closeQuoteProductSearch(){
+
+  const modal =
+    document.getElementById('quoteProductModal');
+
+  if(modal?.open){
+    modal.close();
+  }
+
+  currentQuoteProductQuoteId = null;
 }
+
+
+function renderQuoteProductSearch(value){
+
+  const products = state.products || [];
+
+  const results =
+    document.getElementById('quoteProductResults');
+
+  if(!results) return;
+
+  const term =
+    String(value || '')
+      .trim()
+      .toLowerCase();
+
+  if(term.length < 2){
+    results.innerHTML =
+      '<p class="meta">Escribe al menos 2 caracteres.</p>';
+    return;
+  }
+
+  const matches = products
+    .map(product => {
+
+      const sku =
+        String(product.sku || '').toLowerCase();
+
+      const name =
+        String(product.name || '').toLowerCase();
+
+      const brand =
+        String(product.brand || '').toLowerCase();
+
+      const description =
+        String(product.description || '').toLowerCase();
+
+      let score = 0;
+
+      if(brand === term) score += 100;
+      else if(brand.startsWith(term)) score += 80;
+      else if(brand.includes(term)) score += 60;
+
+      if(sku === term) score += 100;
+      else if(sku.startsWith(term)) score += 70;
+      else if(sku.includes(term)) score += 50;
+
+      if(name.includes(term)) score += 40;
+
+      if(description.includes(term)) score += 20;
+
+      return {
+        product,
+        score
+      };
+    })
+    .filter(item => item.score > 0)
+    .sort((a,b) => b.score - a.score)
+    .slice(0,50);
+
+  if(!matches.length){
+    results.innerHTML =
+      '<p class="meta">No se encontraron productos.</p>';
+    return;
+  }
+
+  results.innerHTML = matches
+    .map(({product}) => `
+      <button
+        type="button"
+        class="quote-product-search-result"
+        onclick="selectQuoteProduct('${product.id}')"
+      >
+        <strong>
+          ${product.sku || '-'} · ${product.name || 'Producto'}
+        </strong>
+
+        <span>
+          MARCA: ${product.brand || '-'}
+          ·
+          ${money(product.price || 0)}
+        </span>
+      </button>
+    `)
+    .join('');
+}
+
+
+function selectQuoteProduct(productId){
+
+  const product = (state.products || [])
+    .find(item => item.id === productId);
+
+  if(!product){
+    alert('Producto no encontrado.');
+    return;
+  }
+
+  const quoteId =
+    currentQuoteProductQuoteId;
+
+  if(!quoteId){
+    alert('No se encontró la cotización.');
+    return;
+  }
 
   const quantity = Number(
     prompt('Cantidad:', '1')
@@ -1095,16 +1367,19 @@ if(!product){
     return;
   }
 
+  closeQuoteProductSearch();
+
   saveQuoteItem({
     quoteId,
-    productId: product.id,
-    sku: product.sku || '',
-    product: product.name || 'Producto',
+    productId:product.id,
+    sku:product.sku || '',
+    product:product.name || 'Producto',
     quantity,
     unitPrice,
     discount
   });
 }
+
 
 async function saveQuoteItem(item){
 

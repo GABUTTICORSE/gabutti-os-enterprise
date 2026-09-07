@@ -1339,6 +1339,34 @@
   </form>
 </dialog>
 
+<dialog id="quoteProductModal">
+  <div style="min-width:min(760px,85vw);">
+    <h2>Agregar producto</h2>
+
+    <input
+      id="quoteProductSearch"
+      type="text"
+      placeholder="Buscar por SKU, producto o marca..."
+      autocomplete="off"
+      oninput="renderQuoteProductSearch(this.value)"
+      style="width:100%;margin-bottom:14px;"
+    >
+
+    <div
+      id="quoteProductResults"
+      style="max-height:420px;overflow:auto;"
+    ></div>
+
+    <div class="actions" style="margin-top:16px;">
+      <button
+        type="button"
+        class="secondary"
+        onclick="closeQuoteProductSearch()"
+      >Cancelar</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="modal"><form id="recordForm"><h2 id="modalTitle"></h2><div id="fields"></div><div class="actions"><button type="button" class="secondary" onclick="closeForm()">Cancelar</button><button>Guardar</button></div></form></dialog>
 <script src="modules/utils.js?v=0.7.0"></script>
 <script src="modules/dashboard.js?v=0.8.0"></script>

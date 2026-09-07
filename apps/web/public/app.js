@@ -836,10 +836,24 @@ async function loadAll() {
   renderLists();
 
   if (
+    typeof renderCommercialProcesses ===
+    'function'
+  ) {
+    renderCommercialProcesses();
+  }
+
+  if (
     typeof renderQuotes ===
     'function'
   ) {
     renderQuotes();
+  }
+
+  if (
+    typeof renderSalesOrders ===
+    'function'
+  ) {
+    renderSalesOrders();
   }
 
   if (
@@ -1187,59 +1201,6 @@ function renderLists() {
       .join('') ||
 
     '<p class="meta">Sin clientes. El próximo será CLI-000001.</p>';
-
-
-  /* -------------------------
-     PROCESOS COMERCIALES
-     ------------------------- */
-
-  casesList.innerHTML =
-    processesData
-      .map(process => `
-        <div
-          class="rec"
-          onclick="showCommercialProcess('${process.id}')"
-        >
-          <h3>
-            ${
-              process.clientName ||
-              'Cliente'
-            }
-            —
-            ${
-              process.product ||
-              'Producto'
-            }
-          </h3>
-
-          <div>
-            ${tag(
-              process.status || '-',
-
-              process.status ===
-              'Esperando Pago'
-                ? 'red'
-                : 'yellow'
-            )}
-          </div>
-
-          <div class="meta">
-            ${
-              money(
-                process.value
-              )
-            }
-            ·
-            ${
-              process.owner ||
-              '-'
-            }
-          </div>
-        </div>
-      `)
-      .join('') ||
-
-    '<p class="meta">Sin procesos comerciales.</p>';
 
 
   /* -------------------------
