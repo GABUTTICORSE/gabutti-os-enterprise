@@ -668,6 +668,7 @@ function dashboardNewsUrl(value = '') {
 }
 
 async function startMotorsportTicker() {
+
   const ticker =
     dashboardElement('motorsportTicker');
 
@@ -676,6 +677,7 @@ async function startMotorsportTicker() {
   }
 
   try {
+
     const response =
       await api('/api/motorsport/news');
 
@@ -690,42 +692,61 @@ async function startMotorsportTicker() {
           MOTORSPORT LIVE · Sin novedades publicadas hoy
         </a>
       `;
-
       return;
     }
 
-    ticker.innerHTML = news
-      .map(item => `
+    const items = news.map(item => ({
+      url: String(item.url || '')
+        .replace(/^\[[^\]]*\]\((https?:\/\/[^)]+)\)$/, '$1'),
+      text: [
+        item.category,
+        item.title,
+        item.source
+      ]
+        .filter(Boolean)
+        .join(' · '),
+      title: [
+        item.source,
+        item.category
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    }));
+
+    let index = 0;
+
+    const renderItem = () => {
+      const item = items[index];
+
+      ticker.innerHTML = `
         <a
-          href="${dashboardEscape(
-            String(item.url || '')
-              .replace(/^\[[^\]]*\]\((https?:\/\/[^)]+)\)$/, '$1')
-          )}"
+          class="motorsport-vertical-item"
+          href="${dashboardEscape(item.url)}"
           target="_blank"
           rel="noopener noreferrer"
-          title="${dashboardEscape(
-            [
-              item.source,
-              item.category
-            ]
-              .filter(Boolean)
-              .join(' · ')
-          )}"
+          title="${dashboardEscape(item.title)}"
         >
-          ${dashboardEscape(
-            [
-              item.category,
-              item.title,
-              item.source
-            ]
-              .filter(Boolean)
-              .join(' · ')
-          )}
+          ${dashboardEscape(item.text)}
         </a>
-      `)
-      .join('');
+      `;
+
+      index = (index + 1) % items.length;
+    };
+
+    renderItem();
+
+    if (window.__gsOneMotorsportRotate) {
+      clearInterval(window.__gsOneMotorsportRotate);
+    }
+
+    window.__gsOneMotorsportRotate =
+      setInterval(
+        renderItem,
+        5000
+      );
 
   } catch (error) {
+
     console.error(
       'Motorsport LIVE:',
       error
@@ -739,6 +760,7 @@ async function startMotorsportTicker() {
   }
 
   if (!window.__gsOneMotorsportRefresh) {
+
     window.__gsOneMotorsportRefresh =
       setInterval(
         startMotorsportTicker,

@@ -2011,3 +2011,161 @@ body:has(#appView:not(.hidden)),
   cursor: pointer;
 }
 
+
+/* =========================================================
+   GS ONE · PRODUCTION DASHBOARD FIX
+   Motorsport + Chronograph + Weather
+   ========================================================= */
+
+/* MOTORSPORT LIVE */
+#dashboard .motorsport-track {
+  animation-duration: 95s !important;
+}
+
+#dashboard .motorsport-track a,
+#dashboard .motorsport-track span {
+  color: #eef2f4 !important;
+  text-decoration: none !important;
+}
+
+#dashboard .motorsport-track a:visited {
+  color: #eef2f4 !important;
+}
+
+#dashboard .motorsport-track a:hover {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+}
+
+/* CHRONOGRAPH */
+#dashboard .dashboard-chrono-sport {
+  display: grid !important;
+  grid-template-columns: 116px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 18px !important;
+  min-height: 132px !important;
+  height: 132px !important;
+  padding: 10px 18px !important;
+  overflow: hidden !important;
+}
+
+#dashboard .sport-watch {
+  display: grid !important;
+  place-items: center !important;
+  width: 112px !important;
+  height: 112px !important;
+  overflow: visible !important;
+}
+
+#dashboard .sport-watch-face {
+  display: block !important;
+  position: relative !important;
+  width: 108px !important;
+  height: 108px !important;
+  flex: none !important;
+  overflow: hidden !important;
+  border-radius: 50% !important;
+}
+
+#dashboard .sport-watch-brand,
+#dashboard .sport-subdial,
+#dashboard .sport-hand,
+#dashboard .sport-watch-center,
+#dashboard .sport-watch-digital {
+  display: block !important;
+}
+
+#dashboard .dashboard-chrono-sport .chrono-info {
+  display: block !important;
+  min-width: 0 !important;
+}
+
+/* WEATHER */
+#dashboard .dashboard-weather {
+  display: grid !important;
+  min-height: 132px !important;
+  height: 132px !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  overflow: hidden !important;
+}
+
+#dashboard .weather-primary {
+  display: flex !important;
+  align-items: center !important;
+}
+
+#dashboard .weather-icon {
+  display: grid !important;
+  place-items: center !important;
+}
+
+#dashboard .weather-copy,
+#dashboard .weather-temperature-row,
+#dashboard .weather-details {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#dashboard .weather-details {
+  display: flex !important;
+}
+
+@media (max-width: 760px) {
+  #dashboard .dashboard-chrono-sport,
+  #dashboard .dashboard-weather {
+    height: auto !important;
+    min-height: 126px !important;
+  }
+}
+
+/* =========================================================
+   GS ONE · MOTORSPORT LIVE VERTICAL
+   ========================================================= */
+
+#dashboard .motorsport-window {
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+#dashboard .motorsport-track {
+  width: 100% !important;
+  min-height: 58px !important;
+  padding-left: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  animation: none !important;
+}
+
+#dashboard .motorsport-vertical-item {
+  display: block !important;
+  width: 100% !important;
+  color: #eef2f4 !important;
+  font-size: 15px !important;
+  font-weight: 650 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-decoration: none !important;
+
+  animation:
+    motorsportVerticalIn 0.55s ease-out both;
+}
+
+#dashboard .motorsport-vertical-item:hover {
+  color: #ffffff !important;
+  text-decoration: underline !important;
+}
+
+@keyframes motorsportVerticalIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
