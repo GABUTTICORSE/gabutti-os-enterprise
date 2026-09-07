@@ -7,6 +7,11 @@ const {
 const { createRecord } = require("./crud");
 const { getTodayMotorsportNews } = require('./motorsport/news.service');
 const { sendTextMessage } = require('./integrations/whatsapp/whatsapp.client');
+const {
+  extractInboundMessages,
+  verifyMetaSignature,
+  verifyWebhookChallenge
+} = require('./integrations/whatsapp/whatsapp.webhook');
 const { readDB, writeDB } = require('./database');
 const { nextNumber } = require('./numbers');
 
@@ -215,6 +220,26 @@ async function lookupCompanyFromProvider(rut){
 
 function js(res,s,d){res.writeHead(s,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(d))}
 function body(req){return new Promise(r=>{let b='';req.on('data',c=>b+=c);req.on('end',()=>{try{r(b?JSON.parse(b):{})}catch{r({})}})})}
+
+function rawBody(req){
+  return new Promise((resolve,reject)=>{
+    const chunks=[];
+
+    req.on('data',chunk=>{
+      chunks.push(
+        Buffer.isBuffer(chunk)
+          ? chunk
+          : Buffer.from(chunk)
+      );
+    });
+
+    req.on('end',()=>{
+      resolve(Buffer.concat(chunks));
+    });
+
+    req.on('error',reject);
+  });
+}
 function log(db,a,e,d){db.activity.unshift({id:uid('act'),at:new Date().toISOString(),action:a,entity:e,detail:d})}
 function addHistory(db, data){
   if(!db.history) db.history = [];
@@ -554,6 +579,294 @@ function demo(authUser){
     activity:[]
   };
 }
+
+function readWhatsAppConfig(){
+  let file={};
+
+  try{
+    file=JSON.parse(
+      fs.readFileSync(
+        path.join(CONFIG_DIR,'whatsapp.local.json'),
+        'utf8'
+      )
+    );
+  }catch{}
+
+  return {
+    verifyToken:
+      process.env.WHATSAPP_VERIFY_TOKEN ||
+      file.verifyToken ||
+      '',
+
+    appSecret:
+      process.env.WHATSAPP_APP_SECRET ||
+      file.appSecret ||
+      ''
+  };
+}
+
+function createWhatsAppInboxItem(db,inbound){
+
+  db.inbox=db.inbox||[];
+  db.activity=db.activity||[];
+
+  const duplicate=(db.inbox||[]).find(item =>
+    inbound.providerMessageId &&
+    item.providerMessageId===inbound.providerMessageId
+  );
+
+  if(duplicate){
+    return {
+      item:duplicate,
+      duplicate:true
+    };
+  }
+
+  const item={
+    id:uid('inb'),
+    number:nextNumber(db,'inbox'),
+    createdAt:new Date().toISOString(),
+
+    source:inbound.source||'WhatsApp Business',
+    sender:inbound.sender||'Contacto WhatsApp',
+    whatsapp:inbound.whatsapp||'',
+    email:'',
+    message:inbound.message||'',
+
+    status:'Nuevo',
+    owner:'Andrea',
+
+    provider:inbound.provider||'Meta Cloud API',
+    providerMessageId:inbound.providerMessageId||'',
+    providerTimestamp:inbound.providerTimestamp||'',
+    messageType:inbound.messageType||'text',
+    phoneNumberId:inbound.phoneNumberId||'',
+    displayPhoneNumber:inbound.displayPhoneNumber||'',
+    rawContextId:inbound.rawContextId||''
+  };
+
+  db.inbox.unshift(item);
+
+  const automationResult=
+    runCreationAutomations(
+      db,
+      {
+        event:'record.created',
+        collection:'inbox',
+        item
+      },
+      {
+        uid,
+        log
+      }
+    );
+
+  log(
+    db,
+    'whatsapp_inbound',
+    'inbox',
+    'Mensaje WhatsApp recibido ' +
+      (item.providerMessageId||item.id)
+  );
+
+  return {
+    item,
+    duplicate:false,
+    automationResult
+  };
+}
+
+async function whatsappWebhook(req,res){
+
+  const config=readWhatsAppConfig();
+
+  if(req.method==='GET'){
+
+    const url=
+      new URL(
+        req.url,
+        'http://localhost'
+      );
+
+    const query=
+      Object.fromEntries(
+        url.searchParams.entries()
+      );
+
+    const verification=
+      verifyWebhookChallenge(
+        query,
+        config.verifyToken
+      );
+
+    console.log(
+      '[WA WEBHOOK] verification',
+      {
+        ok:verification.ok
+      }
+    );
+
+    if(!verification.ok){
+      res.writeHead(403,{
+        'Content-Type':'text/plain; charset=utf-8'
+      });
+
+      return res.end('Forbidden');
+    }
+
+    res.writeHead(200,{
+      'Content-Type':'text/plain; charset=utf-8'
+    });
+
+    return res.end(
+      String(verification.challenge||'')
+    );
+  }
+
+  if(req.method==='POST'){
+
+    try{
+
+      const raw=
+        await rawBody(req);
+
+      const signature=
+        String(
+          req.headers['x-hub-signature-256']||
+          ''
+        );
+
+      const signatureOk=
+        verifyMetaSignature(
+          raw,
+          signature,
+          config.appSecret
+        );
+
+      console.log(
+        '[WA WEBHOOK] signature',
+        {
+          ok:signatureOk,
+          bytes:raw.length
+        }
+      );
+
+      if(!signatureOk){
+        return js(
+          res,
+          401,
+          {
+            error:'Firma de Meta inválida.'
+          }
+        );
+      }
+
+      let payload={};
+
+      try{
+        payload=
+          JSON.parse(
+            raw.toString('utf8')||'{}'
+          );
+      }catch{
+        return js(
+          res,
+          400,
+          {
+            error:'Payload JSON inválido.'
+          }
+        );
+      }
+
+      const inboundMessages=
+        extractInboundMessages(payload);
+
+      if(!inboundMessages.length){
+        return js(
+          res,
+          200,
+          {
+            ok:true,
+            received:0
+          }
+        );
+      }
+
+      const db=readDB();
+
+      const results=
+        inboundMessages.map(inbound =>
+          createWhatsAppInboxItem(
+            db,
+            inbound
+          )
+        );
+
+      writeDB(db);
+
+      const received=
+        results.filter(
+          result=>!result.duplicate
+        ).length;
+
+      const duplicates=
+        results.filter(
+          result=>result.duplicate
+        ).length;
+
+      console.log(
+        '[WA WEBHOOK] stored',
+        {
+          received,
+          duplicates,
+          inboxIds:
+            results.map(
+              result=>result.item.id
+            )
+        }
+      );
+
+      return js(
+        res,
+        200,
+        {
+          ok:true,
+          received,
+          duplicates,
+          inboxIds:
+            results.map(
+              result=>result.item.id
+            )
+        }
+      );
+
+    }catch(error){
+
+      console.error(
+        '[WA WEBHOOK] error',
+        error
+      );
+
+      return js(
+        res,
+        500,
+        {
+          error:
+            'Error procesando WhatsApp.'
+        }
+      );
+    }
+  }
+
+  return js(
+    res,
+    405,
+    {
+      error:'Method not allowed'
+    }
+  );
+}
+
 async function api(req,res){
   let db=readDB(),parts=req.url.split('?')[0].split('/').filter(Boolean),c=parts[1],id=parts[2];
   const automationsChanged = runAutomations(db, { uid });
@@ -1165,4 +1478,22 @@ if(c==='rut-lookup' && req.method==='GET'){
   }
   return js(res,405,{error:'method'});}
 function serve(req,res){let u=decodeURIComponent(req.url.split('?')[0]);if(u==='/')u='/index.html';let f=path.join(WEB,u);if(!f.startsWith(WEB))return js(res,403,{error:'forbidden'});fs.readFile(f,(e,d)=>{if(e)return js(res,404,{error:'not found'});let ct=f.endsWith('.css')?'text/css':f.endsWith('.js')?'text/javascript':'text/html';res.writeHead(200,{'Content-Type':ct+'; charset=utf-8','Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate','Pragma':'no-cache','Expires':'0'});res.end(d)})}
-http.createServer((req,res)=>req.url.startsWith('/api/')?api(req,res):serve(req,res)).listen(PORT,()=>console.log('GS ONE v0.8.2 · Dashboard V3 running at http://localhost:'+PORT));
+http.createServer((req,res)=>{
+  const pathname=req.url.split('?')[0];
+
+  if(pathname==='/webhooks/whatsapp'){
+    return whatsappWebhook(req,res);
+  }
+
+  if(req.url.startsWith('/api/')){
+    return api(req,res);
+  }
+
+  return serve(req,res);
+
+}).listen(
+  PORT,
+  ()=>console.log(
+    'GS ONE v0.8.2 · Dashboard V3 running at http://localhost:'+PORT
+  )
+);
