@@ -109,31 +109,10 @@ function parseCookies(req) {
   return cookies;
 }
 
-function getBearerToken(req) {
-  const value =
-    req.headers.authorization || '';
-
-  return value.startsWith('Bearer ')
-    ? value.slice(7).trim()
-    : '';
-}
-
 function getSessionToken(req) {
-  /*
-   * Durante la migración mantenemos Bearer
-   * como compatibilidad temporal.
-   *
-   * La cookie HttpOnly será el mecanismo
-   * definitivo.
-   */
-
   const cookies = parseCookies(req);
 
-  if (cookies[SESSION_COOKIE]) {
-    return cookies[SESSION_COOKIE];
-  }
-
-  return getBearerToken(req);
+  return cookies[SESSION_COOKIE] || '';
 }
 
 function getSession(req) {
