@@ -1073,7 +1073,18 @@ if(c==='login'&&req.method==='POST'){
        x.status!=='Inactivo'
   );
 
-  if(!u || !verifyPassword(b.password,u.passwordHash)){
+  const dummyPasswordHash =
+    '854529441deefdd2a914520c89c2965a:1a31a547b470c7adb6bff6734892e3e3998e89d752978795796801378428b6c48531f4035ddaed46e7f664cf6245210e61cbdfbdd2183e48f940e6cb69421753';
+
+  const passwordValid =
+    verifyPassword(
+      b.password,
+      u
+        ? u.passwordHash
+        : dummyPasswordHash
+    );
+
+  if(!u || !passwordValid){
     registerFailedLogin(loginKey);
     log(
       db,
