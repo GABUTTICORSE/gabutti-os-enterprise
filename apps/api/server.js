@@ -282,13 +282,18 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LOCK_MS = 15 * 60 * 1000;
 
 function getClientIp(req) {
+  const isRailway =
+    Boolean(
+      process.env.RAILWAY_ENVIRONMENT
+    );
+
   const realIp =
     String(
       req.headers['x-real-ip'] ||
       ''
     ).trim();
 
-  if (realIp) {
+  if (isRailway && realIp) {
     return realIp;
   }
 
