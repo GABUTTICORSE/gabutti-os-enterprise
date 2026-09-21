@@ -7,6 +7,7 @@ const {
   hashPassword,
   migrateUsers,
   revokeSession,
+  rotateSession,
   sanitizeUser,
   verifyPassword
 } = require('./auth');
@@ -1359,6 +1360,19 @@ if(c==='logout'&&req.method==='POST'){
 }
   const session=getSession(req);
   if(!session)return js(res,401,{error:'Sesión inválida o vencida'});
+
+  const rotatedSession=rotateSession(session);
+
+  if(rotatedSession){
+    res.setHeader(
+      'Set-Cookie',
+      createSessionCookie(
+        rotatedSession.token,
+        rotatedSession.expiresAt
+      )
+    );
+  }
+
   const authUser=(db.users||[]).find(
     x =>
       x.id === session.userId &&

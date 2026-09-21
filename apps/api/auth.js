@@ -4,6 +4,7 @@ const sessions = new Map();
 
 const SESSION_HOURS = 8;
 const SESSION_IDLE_MINUTES = 30;
+const SESSION_ROTATION_MINUTES = 30;
 const SESSION_COOKIE = 'gsone_session';
 
 function hashPassword(
@@ -172,6 +173,50 @@ function getSession(req) {
   };
 }
 
+function rotateSession(session) {
+  if (!session || !session.token) {
+    return null;
+  }
+
+  const createdAt = Date.parse(
+    session.createdAt
+  );
+
+  const now = Date.now();
+
+  if (
+    !Number.isFinite(createdAt) ||
+    now - createdAt <
+      SESSION_ROTATION_MINUTES *
+      60 *
+      1000
+  ) {
+    return null;
+  }
+
+  const oldToken = session.token;
+  const newToken = crypto
+    .randomBytes(32)
+    .toString('hex');
+
+  const rotatedAt =
+    new Date(now).toISOString();
+
+  sessions.set(newToken, {
+    userId: session.userId,
+    createdAt: rotatedAt,
+    lastActivityAt: rotatedAt,
+    expiresAt: session.expiresAt
+  });
+
+  sessions.delete(oldToken);
+
+  return {
+    token: newToken,
+    expiresAt: session.expiresAt
+  };
+}
+
 function revokeSession(req) {
   const token = getSessionToken(req);
 
@@ -249,6 +294,7 @@ module.exports = {
   hashPassword,
   migrateUsers,
   revokeSession,
+  rotateSession,
   sanitizeUser,
   verifyPassword
 };
