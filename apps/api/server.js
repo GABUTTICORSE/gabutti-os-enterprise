@@ -280,6 +280,7 @@ const LOGIN_MAX_ATTEMPTS = 5;
 const LOGIN_IP_MAX_ATTEMPTS = 20;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LOCK_MS = 15 * 60 * 1000;
+const LOGIN_MAP_MAX_ENTRIES = 10000;
 
 function getClientIp(req) {
   const isRailway =
@@ -428,6 +429,22 @@ function registerFailedIpLogin(ip) {
   return record;
 }
 
+function capLoginAttemptMap(map) {
+  while (
+    map.size >
+    LOGIN_MAP_MAX_ENTRIES
+  ) {
+    const oldestKey =
+      map.keys().next().value;
+
+    if (oldestKey === undefined) {
+      break;
+    }
+
+    map.delete(oldestKey);
+  }
+}
+
 function pruneLoginAttempts() {
   const now = Date.now();
 
@@ -452,6 +469,9 @@ function pruneLoginAttempts() {
       loginIpAttempts.delete(ip);
     }
   }
+
+  capLoginAttemptMap(loginAttempts);
+  capLoginAttemptMap(loginIpAttempts);
 }
 
 function rawBody(req){
