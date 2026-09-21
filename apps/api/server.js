@@ -1268,7 +1268,9 @@ if(c==='login'&&req.method==='POST'){
       db,
       'login_failed',
       'users',
-      'Intento fallido '+(email||'sin email')
+      'Intento fallido '+
+        (email||'sin email')+
+        ' · IP '+loginIp
     );
 
     writeDB(db);
