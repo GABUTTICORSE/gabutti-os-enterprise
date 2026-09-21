@@ -1525,7 +1525,20 @@ if(c==='rut-lookup' && req.method==='GET'){
     addClientAudit(db,id,authUser,'Nota ejecutiva creada',note.importance+' · '+note.recommendedColor);
     writeDB(db);return js(res,201,note);
   }
-  if(c==='db'&&req.method==='GET'){const safeDb={...db,users:(db.users||[]).map(sanitizeUser)};return js(res,200,safeDb);}
+  if(c==='db'&&req.method==='GET'){
+    if(authUser.role!=='Executive'){
+      return js(res,403,{
+        error:'Acceso exclusivo Executive'
+      });
+    }
+
+    const safeDb={
+      ...db,
+      users:(db.users||[]).map(sanitizeUser)
+    };
+
+    return js(res,200,safeDb);
+  }
   if(c==='demo'&&req.method==='POST'){return js(res,403,{ok:false,error:'Demo deshabilitado'})}
   if(c==='whatsapp-send' && req.method==='POST'){
   const inbox = (db.inbox || []).find(item => item.id === id);
