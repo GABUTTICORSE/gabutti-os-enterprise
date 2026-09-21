@@ -2011,9 +2011,25 @@ function serve(req,res){
 
   fs.readFile(f,(e,d)=>{
     if(e)return js(res,404,{error:'not found'});
-    let ct=f.endsWith('.css')?'text/css':f.endsWith('.js')?'text/javascript':'text/html';
+    const ext=path.extname(f).toLowerCase();
+
+    const mimeTypes={
+      '.html':'text/html; charset=utf-8',
+      '.css':'text/css; charset=utf-8',
+      '.js':'text/javascript; charset=utf-8',
+      '.png':'image/png',
+      '.jpg':'image/jpeg',
+      '.jpeg':'image/jpeg'
+    };
+
+    const ct=mimeTypes[ext];
+
+    if(!ct){
+      return js(res,415,{error:'unsupported media type'});
+    }
+
     res.writeHead(200,{
-      'Content-Type':ct+'; charset=utf-8',
+      'Content-Type':ct,
       'Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate',
       'Pragma':'no-cache',
       'Expires':'0'
