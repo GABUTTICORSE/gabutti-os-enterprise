@@ -239,13 +239,14 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LOCK_MS = 15 * 60 * 1000;
 
 function getClientIp(req) {
-  const forwarded =
-    req.headers['x-forwarded-for'];
+  const realIp =
+    String(
+      req.headers['x-real-ip'] ||
+      ''
+    ).trim();
 
-  if (forwarded) {
-    return String(forwarded)
-      .split(',')[0]
-      .trim();
+  if (realIp) {
+    return realIp;
   }
 
   return (
