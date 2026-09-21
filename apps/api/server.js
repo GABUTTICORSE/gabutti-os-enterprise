@@ -457,16 +457,35 @@ function pruneLoginAttempts() {
 function rawBody(req){
   return new Promise((resolve,reject)=>{
     const chunks=[];
+    let size=0;
+    let exceeded=false;
 
     req.on('data',chunk=>{
-      chunks.push(
+      if(exceeded) return;
+
+      const buffer=
         Buffer.isBuffer(chunk)
           ? chunk
-          : Buffer.from(chunk)
-      );
+          : Buffer.from(chunk);
+
+      size+=buffer.length;
+
+      if(size>MAX_JSON_BODY_BYTES){
+        exceeded=true;
+
+        const error=new Error(
+          'Payload demasiado grande'
+        );
+        error.status=413;
+        reject(error);
+        return;
+      }
+
+      chunks.push(buffer);
     });
 
     req.on('end',()=>{
+      if(exceeded) return;
       resolve(Buffer.concat(chunks));
     });
 
