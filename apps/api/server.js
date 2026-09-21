@@ -1842,7 +1842,31 @@ if(c==='rut-lookup' && req.method==='GET'){
     return js(res,201,item);
   }
   return js(res,405,{error:'method'});}
-function serve(req,res){let u=decodeURIComponent(req.url.split('?')[0]);if(u==='/')u='/index.html';let f=path.join(WEB,u);if(!f.startsWith(WEB))return js(res,403,{error:'forbidden'});fs.readFile(f,(e,d)=>{if(e)return js(res,404,{error:'not found'});let ct=f.endsWith('.css')?'text/css':f.endsWith('.js')?'text/javascript':'text/html';res.writeHead(200,{'Content-Type':ct+'; charset=utf-8','Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate','Pragma':'no-cache','Expires':'0'});res.end(d)})}
+function serve(req,res){
+  let u=decodeURIComponent(req.url.split('?')[0]);
+  if(u==='/')u='/index.html';
+
+  if(
+    u.toLowerCase().endsWith('.bak') ||
+    u.includes('/.')
+  ){
+    return js(res,404,{error:'not found'});
+  }
+
+  let f=path.join(WEB,u);
+  if(!f.startsWith(WEB))return js(res,403,{error:'forbidden'});
+  fs.readFile(f,(e,d)=>{
+    if(e)return js(res,404,{error:'not found'});
+    let ct=f.endsWith('.css')?'text/css':f.endsWith('.js')?'text/javascript':'text/html';
+    res.writeHead(200,{
+      'Content-Type':ct+'; charset=utf-8',
+      'Cache-Control':'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma':'no-cache',
+      'Expires':'0'
+    });
+    res.end(d);
+  });
+}
 http.createServer((req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('X-Frame-Options','DENY');
