@@ -1,5 +1,15 @@
 const http=require('http'),fs=require('fs'),path=require('path');
-const { createSession, getSession, hashPassword, migrateUsers, revokeSession, sanitizeUser, verifyPassword } = require('./auth');
+const {
+  clearSessionCookie,
+  createSession,
+  createSessionCookie,
+  getSession,
+  hashPassword,
+  migrateUsers,
+  revokeSession,
+  sanitizeUser,
+  verifyPassword
+} = require('./auth');
 const {
   runAutomations,
   runCreationAutomations
