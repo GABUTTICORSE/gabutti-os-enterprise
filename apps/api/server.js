@@ -1291,7 +1291,12 @@ if(c==='login'&&req.method==='POST'){
     )
   );
 
-  log(db,'login','users','Ingreso '+u.email);
+  log(
+    db,
+    'login',
+    'users',
+    'Ingreso '+u.email+' · IP '+loginIp
+  );
   writeDB(db);
 
   return js(res,200,{
@@ -1314,7 +1319,10 @@ if(c==='logout'&&req.method==='POST'){
         db,
         'logout',
         'users',
-        'Salida '+logoutUser.email
+        'Salida '+
+          logoutUser.email+
+          ' · IP '+
+          getClientIp(req)
       );
       writeDB(db);
     }
