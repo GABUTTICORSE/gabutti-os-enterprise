@@ -44,10 +44,19 @@ function verifyPassword(password, stored) {
 function sanitizeUser(user) {
   if (!user) return null;
 
-  const safe = { ...user };
+  const safe = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    organization: user.organization,
+    role: user.role,
+    condition: user.condition,
+    status: user.status
+  };
 
-  delete safe.password;
-  delete safe.passwordHash;
+  if (user.legacyTitle !== undefined) {
+    safe.legacyTitle = user.legacyTitle;
+  }
 
   return safe;
 }
