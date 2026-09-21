@@ -1122,8 +1122,24 @@ if(c==='logout'&&req.method==='POST'){
 }
   const session=getSession(req);
   if(!session)return js(res,401,{error:'Sesión inválida o vencida'});
-  const authUser=(db.users||[]).find(x=>x.id===session.userId);
-  if(!authUser)return js(res,401,{error:'Usuario no disponible'});
+  const authUser=(db.users||[]).find(
+    x =>
+      x.id === session.userId &&
+      x.status !== 'Inactivo'
+  );
+
+  if(!authUser){
+    revokeSession(req);
+
+    res.setHeader(
+      'Set-Cookie',
+      clearSessionCookie()
+    );
+
+    return js(res,401,{
+      error:'Usuario no disponible'
+    });
+  }
   if(c==='me'&&req.method==='GET')return js(res,200,{user:sanitizeUser(authUser),session:{createdAt:session.createdAt,expiresAt:session.expiresAt}});
   if(c==='identity'&&req.method==='GET')return js(res,200,{organization:authUser.organization||'Gabutti Corse',people:(db.users||[]).map(sanitizeUser),roles:db.roles||[],accessLog:(db.activity||[]).filter(x=>['login','login_failed','logout'].includes(x.action)).slice(0,25)});
   if(c==='dashboard'&&req.method==='GET')return js(res,200,dashboard(db));
