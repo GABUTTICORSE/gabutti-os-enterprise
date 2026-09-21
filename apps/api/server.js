@@ -1982,7 +1982,14 @@ if(c==='rut-lookup' && req.method==='GET'){
   }
   return js(res,405,{error:'method'});}
 function serve(req,res){
-  let u=decodeURIComponent(req.url.split('?')[0]);
+  let u;
+
+  try{
+    u=decodeURIComponent(req.url.split('?')[0]);
+  }catch{
+    return js(res,400,{error:'bad request'});
+  }
+
   if(u==='/')u='/index.html';
 
   if(
@@ -1992,8 +1999,16 @@ function serve(req,res){
     return js(res,404,{error:'not found'});
   }
 
-  let f=path.join(WEB,u);
-  if(!f.startsWith(WEB))return js(res,403,{error:'forbidden'});
+  const f=path.resolve(WEB,'.'+u);
+  const relative=path.relative(WEB,f);
+
+  if(
+    relative.startsWith('..') ||
+    path.isAbsolute(relative)
+  ){
+    return js(res,403,{error:'forbidden'});
+  }
+
   fs.readFile(f,(e,d)=>{
     if(e)return js(res,404,{error:'not found'});
     let ct=f.endsWith('.css')?'text/css':f.endsWith('.js')?'text/javascript':'text/html';
