@@ -1300,6 +1300,24 @@ if(c==='login'&&req.method==='POST'){
 }
 
 if(c==='logout'&&req.method==='POST'){
+  const logoutSession=getSession(req);
+
+  if(logoutSession){
+    const logoutUser=(db.users||[]).find(
+      x=>x.id===logoutSession.userId
+    );
+
+    if(logoutUser){
+      log(
+        db,
+        'logout',
+        'users',
+        'Salida '+logoutUser.email
+      );
+      writeDB(db);
+    }
+  }
+
   revokeSession(req);
 
   res.setHeader(
