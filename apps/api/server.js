@@ -1440,8 +1440,7 @@ if(c==='rut-lookup' && req.method==='GET'){
 
     return js(res,500,{
       valid:false,
-      error:'Error interno consultando datos tributarios.',
-      detail:error.message
+      error:'Error interno consultando datos tributarios.'
     });
 
   }
@@ -1470,7 +1469,9 @@ if(c==='rut-lookup' && req.method==='GET'){
       writeDB(db);return js(res,200,{ok:true,data:saved,clientUpdated:!!client});
     }catch(error){
       db.tax_sync_log=db.tax_sync_log||[];db.tax_sync_log.unshift({id:uid('tsl'),rut:formatRut(rut),status:'Error',source:'SRE',actor:authUser.name,detail:error.message,createdAt:new Date().toISOString()});writeDB(db);
-      return js(res,503,{error:'No fue posible actualizar desde SRE.',detail:error.message});
+      return js(res,503,{
+        error:'No fue posible actualizar desde SRE.'
+      });
     }
   }
   if(c==='development-reset'&&req.method==='POST'){
@@ -1571,9 +1572,15 @@ if(c==='rut-lookup' && req.method==='GET'){
   }catch(error){
     console.error('WhatsApp outbound error:', error);
 
-    return js(res,error.status || 500,{
-      error:error.message || 'No fue posible enviar el WhatsApp.',
-      detail:error.response || null
+    const safeStatus =
+      Number.isInteger(error.status) &&
+      error.status >= 400 &&
+      error.status < 600
+        ? error.status
+        : 500;
+
+    return js(res,safeStatus,{
+      error:'No fue posible enviar el WhatsApp.'
     });
   }
 }
