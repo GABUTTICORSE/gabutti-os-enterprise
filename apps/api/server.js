@@ -230,6 +230,96 @@ async function lookupCompanyFromProvider(rut){
 
 function js(res,s,d){res.writeHead(s,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(d))}
 function body(req){return new Promise(r=>{let b='';req.on('data',c=>b+=c);req.on('end',()=>{try{r(b?JSON.parse(b):{})}catch{r({})}})})}
+const loginAttempts = new Map();
+
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_LOCK_MS = 15 * 60 * 1000;
+
+function getClientIp(req) {
+  const forwarded =
+    req.headers['x-forwarded-for'];
+
+  if (forwarded) {
+    return String(forwarded)
+      .split(',')[0]
+      .trim();
+  }
+
+  return (
+    req.socket?.remoteAddress ||
+    'unknown'
+  );
+}
+function getLoginAttemptKey(req, email) {
+  return (
+    getClientIp(req) +
+    '|' +
+    String(email || '')
+      .trim()
+      .toLowerCase()
+  );
+}
+function getLoginLock(key) {
+  const record = loginAttempts.get(key);
+
+  if (!record) return null;
+
+  const now = Date.now();
+
+  if (
+    record.lockedUntil &&
+    record.lockedUntil > now
+  ) {
+    return record;
+  }
+
+  if (
+    now - record.firstAttempt >
+    LOGIN_WINDOW_MS
+  ) {
+    loginAttempts.delete(key);
+    return null;
+  }
+
+  return null;
+}
+function registerFailedLogin(key) {
+  const now = Date.now();
+  let record = loginAttempts.get(key);
+
+  if (
+    !record ||
+    now - record.firstAttempt >
+      LOGIN_WINDOW_MS
+  ) {
+    record = {
+      attempts: 0,
+      firstAttempt: now,
+      lockedUntil: 0
+    };
+  }
+
+  record.attempts += 1;
+
+  if (
+    record.attempts >=
+    LOGIN_MAX_ATTEMPTS
+  ) {
+    record.lockedUntil =
+      now + LOGIN_LOCK_MS;
+  }
+
+  loginAttempts.set(
+    key,
+    record
+  );
+
+  return record;
+}
+function clearFailedLogins(key) {
+  loginAttempts.delete(key);
+}
 
 function rawBody(req){
   return new Promise((resolve,reject)=>{
@@ -892,12 +982,28 @@ if(c==='login'&&req.method==='POST'){
     .trim()
     .toLowerCase();
 
+  const loginKey =
+    getLoginAttemptKey(
+     req,
+      email
+    );
+
+  const activeLock =
+    getLoginLock(loginKey);
+
+  if (activeLock) {
+    return js(res,429,{
+      error:
+        'Demasiados intentos de acceso. Intenta nuevamente más tarde.'
+    });
+  }
   const u=(db.users||[]).find(
     x=>String(x.email||'').trim().toLowerCase()===email &&
        x.status!=='Inactivo'
   );
 
   if(!u || !verifyPassword(b.password,u.passwordHash)){
+    registerFailedLogin(loginKey);
     log(
       db,
       'login_failed',
@@ -911,6 +1017,7 @@ if(c==='login'&&req.method==='POST'){
       error:'Credenciales inválidas'
     });
   }
+  clearFailedLogins(loginKey);
 
   const session=createSession(u);
 
