@@ -231,8 +231,10 @@ async function lookupCompanyFromProvider(rut){
 function js(res,s,d){res.writeHead(s,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(d))}
 function body(req){return new Promise(r=>{let b='';req.on('data',c=>b+=c);req.on('end',()=>{try{r(b?JSON.parse(b):{})}catch{r({})}})})}
 const loginAttempts = new Map();
+const loginIpAttempts = new Map();
 
 const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_IP_MAX_ATTEMPTS = 20;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LOCK_MS = 15 * 60 * 1000;
 
@@ -319,6 +321,62 @@ function registerFailedLogin(key) {
 }
 function clearFailedLogins(key) {
   loginAttempts.delete(key);
+}
+
+function getIpLoginLock(ip) {
+  const record = loginIpAttempts.get(ip);
+
+  if (!record) return null;
+
+  const now = Date.now();
+
+  if (
+    record.lockedUntil &&
+    record.lockedUntil > now
+  ) {
+    return record;
+  }
+
+  if (
+    now - record.firstAttempt >
+    LOGIN_WINDOW_MS
+  ) {
+    loginIpAttempts.delete(ip);
+    return null;
+  }
+
+  return null;
+}
+
+function registerFailedIpLogin(ip) {
+  const now = Date.now();
+  let record = loginIpAttempts.get(ip);
+
+  if (
+    !record ||
+    now - record.firstAttempt >
+      LOGIN_WINDOW_MS
+  ) {
+    record = {
+      attempts: 0,
+      firstAttempt: now,
+      lockedUntil: 0
+    };
+  }
+
+  record.attempts += 1;
+
+  if (
+    record.attempts >=
+    LOGIN_IP_MAX_ATTEMPTS
+  ) {
+    record.lockedUntil =
+      now + LOGIN_LOCK_MS;
+  }
+
+  loginIpAttempts.set(ip, record);
+
+  return record;
 }
 
 function rawBody(req){
@@ -1059,10 +1117,16 @@ if(c==='login'&&req.method==='POST'){
       email
     );
 
+  const loginIp =
+    getClientIp(req);
+
   const activeLock =
     getLoginLock(loginKey);
 
-  if (activeLock) {
+  const activeIpLock =
+    getIpLoginLock(loginIp);
+
+  if (activeLock || activeIpLock) {
     return js(res,429,{
       error:
         'Demasiados intentos de acceso. Intenta nuevamente más tarde.'
@@ -1086,6 +1150,7 @@ if(c==='login'&&req.method==='POST'){
 
   if(!u || !passwordValid){
     registerFailedLogin(loginKey);
+    registerFailedIpLogin(loginIp);
     log(
       db,
       'login_failed',
