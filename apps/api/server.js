@@ -967,7 +967,78 @@ async function whatsappWebhook(req,res){
   );
 }
 
+function isAllowedApiOrigin(req) {
+  const origin = String(
+    req.headers.origin || ''
+  ).trim();
+
+  /*
+   * Permitimos ausencia de Origin para:
+   * - curl
+   * - tests
+   * - herramientas internas
+   *
+   * Las peticiones del navegador sí serán
+   * validadas contra el host actual.
+   */
+  if (!origin) {
+    return true;
+  }
+
+  const forwardedProto =
+    String(
+      req.headers['x-forwarded-proto'] ||
+      ''
+    )
+      .split(',')[0]
+      .trim();
+
+  const protocol =
+    forwardedProto ||
+    (req.socket?.encrypted
+      ? 'https'
+      : 'http');
+
+  const forwardedHost =
+    String(
+      req.headers['x-forwarded-host'] ||
+      ''
+    )
+      .split(',')[0]
+      .trim();
+
+  const host =
+    forwardedHost ||
+    String(req.headers.host || '')
+      .trim();
+
+  if (!host) {
+    return false;
+  }
+
+  const expectedOrigin =
+    `${protocol}://${host}`;
+
+  return origin === expectedOrigin;
+}
+
 async function api(req,res){
+   const stateChangingMethods =
+    new Set([
+      'POST',
+      'PUT',
+      'PATCH',
+      'DELETE'
+    ]);
+
+  if (
+    stateChangingMethods.has(req.method) &&
+    !isAllowedApiOrigin(req)
+  ) {
+    return js(res,403,{
+      error:'Origen de solicitud no permitido'
+    });
+  } 
   let db=readDB(),parts=req.url.split('?')[0].split('/').filter(Boolean),c=parts[1],id=parts[2];
   const automationsChanged = runAutomations(db, { uid });
 
