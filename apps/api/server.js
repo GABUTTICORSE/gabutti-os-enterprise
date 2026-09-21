@@ -1342,6 +1342,19 @@ if(c==='rut-lookup' && req.method==='GET'){
     }
   }
   if(c==='development-reset'&&req.method==='POST'){
+    if(
+      String(process.env.RAILWAY_ENVIRONMENT||'')
+        .toLowerCase()==='production'
+    ){
+      return js(res,404,{error:'not found'});
+    }
+
+    if(authUser.role!=='Executive'){
+      return js(res,403,{
+        error:'Acceso exclusivo Executive'
+      });
+    }
+
     ['clients','client_contacts','client_addresses','client_notes','client_alerts','client_ai_evaluations','client_audit','client_scores','inbox','inbox_analysis','commercial_processes','quotes','quote_items','sales_orders','history','tasks','finance','activity'].forEach(k=>db[k]=[]);
     db.counters={...(db.counters||{}),CLI:0};
     writeDB(db);
