@@ -380,6 +380,32 @@ function registerFailedIpLogin(ip) {
   return record;
 }
 
+function pruneLoginAttempts() {
+  const now = Date.now();
+
+  for (const [key, record] of loginAttempts) {
+    const expiresAt = Math.max(
+      record.firstAttempt + LOGIN_WINDOW_MS,
+      record.lockedUntil || 0
+    );
+
+    if (expiresAt <= now) {
+      loginAttempts.delete(key);
+    }
+  }
+
+  for (const [ip, record] of loginIpAttempts) {
+    const expiresAt = Math.max(
+      record.firstAttempt + LOGIN_WINDOW_MS,
+      record.lockedUntil || 0
+    );
+
+    if (expiresAt <= now) {
+      loginIpAttempts.delete(ip);
+    }
+  }
+}
+
 function rawBody(req){
   return new Promise((resolve,reject)=>{
     const chunks=[];
@@ -1120,6 +1146,8 @@ if(c==='login'&&req.method==='POST'){
 
   const loginIp =
     getClientIp(req);
+
+  pruneLoginAttempts();
 
   const activeLock =
     getLoginLock(loginKey);
