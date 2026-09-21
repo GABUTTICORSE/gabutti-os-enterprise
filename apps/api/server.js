@@ -1033,10 +1033,10 @@ if(c==='login'&&req.method==='POST'){
   writeDB(db);
 
   return js(res,200,{
-    ok:true,
-    user:sanitizeUser(u),
-    ...session
-  });
+  ok:true,
+  user:sanitizeUser(u),
+  expiresAt:session.expiresAt
+});
 }
 
 if(c==='logout'&&req.method==='POST'){
