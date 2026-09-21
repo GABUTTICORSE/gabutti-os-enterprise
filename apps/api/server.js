@@ -1199,6 +1199,23 @@ if(c==='login'&&req.method==='POST'){
     getIpLoginLock(loginIp);
 
   if (activeLock || activeIpLock) {
+    const lockedUntil = Math.max(
+      activeLock?.lockedUntil || 0,
+      activeIpLock?.lockedUntil || 0
+    );
+
+    const retryAfterSeconds = Math.max(
+      1,
+      Math.ceil(
+        (lockedUntil - Date.now()) / 1000
+      )
+    );
+
+    res.setHeader(
+      'Retry-After',
+      String(retryAfterSeconds)
+    );
+
     return js(res,429,{
       error:
         'Demasiados intentos de acceso. Intenta nuevamente más tarde.'
