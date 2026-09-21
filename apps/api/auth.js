@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const sessions = new Map();
 
 const SESSION_HOURS = 8;
+const SESSION_IDLE_MINUTES = 30;
 const SESSION_COOKIE = 'gsone_session';
 
 function hashPassword(
@@ -76,6 +77,7 @@ function createSession(user) {
   sessions.set(token, {
     userId: user.id,
     createdAt: createdAt.toISOString(),
+    lastActivityAt: createdAt.toISOString(),
     expiresAt: expiresAt.toISOString()
   });
 
@@ -133,13 +135,36 @@ function getSession(req) {
 
   if (!session) return null;
 
+  const now = Date.now();
+
   if (
-    Date.parse(session.expiresAt) <=
-    Date.now()
+    Date.parse(session.expiresAt) <= now
   ) {
     sessions.delete(token);
     return null;
   }
+
+  const lastActivityAt =
+    Date.parse(
+      session.lastActivityAt ||
+      session.createdAt
+    );
+
+  const idleLimit =
+    SESSION_IDLE_MINUTES *
+    60 *
+    1000;
+
+  if (
+    !Number.isFinite(lastActivityAt) ||
+    now - lastActivityAt >= idleLimit
+  ) {
+    sessions.delete(token);
+    return null;
+  }
+
+  session.lastActivityAt =
+    new Date(now).toISOString();
 
   return {
     token,
