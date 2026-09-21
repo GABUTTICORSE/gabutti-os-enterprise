@@ -229,7 +229,50 @@ async function lookupCompanyFromProvider(rut){
 }
 
 function js(res,s,d){res.writeHead(s,{'Content-Type':'application/json; charset=utf-8'});res.end(JSON.stringify(d))}
-function body(req){return new Promise(r=>{let b='';req.on('data',c=>b+=c);req.on('end',()=>{try{r(b?JSON.parse(b):{})}catch{r({})}})})}
+const MAX_JSON_BODY_BYTES = 1024 * 1024;
+
+function body(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    let size = 0;
+    let exceeded = false;
+
+    req.on('data', chunk => {
+      if (exceeded) return;
+
+      size += Buffer.byteLength(chunk);
+
+      if (size > MAX_JSON_BODY_BYTES) {
+        exceeded = true;
+
+        const error = new Error(
+          'Payload demasiado grande'
+        );
+        error.status = 413;
+        reject(error);
+        return;
+      }
+
+      data += chunk;
+    });
+
+    req.on('end', () => {
+      if (exceeded) return;
+
+      try {
+        resolve(
+          data
+            ? JSON.parse(data)
+            : {}
+        );
+      } catch {
+        resolve({});
+      }
+    });
+
+    req.on('error', reject);
+  });
+}
 const loginAttempts = new Map();
 const loginIpAttempts = new Map();
 
@@ -1883,7 +1926,26 @@ http.createServer((req,res)=>{
   }
 
   if(req.url.startsWith('/api/')){
-    return api(req,res);
+    return api(req,res).catch(error=>{
+      if(res.headersSent){
+        return res.end();
+      }
+
+      if(error && error.status===413){
+        return js(res,413,{
+          error:'Payload demasiado grande'
+        });
+      }
+
+      console.error(
+        'API request error:',
+        error
+      );
+
+      return js(res,500,{
+        error:'Error interno del servidor'
+      });
+    });
   }
 
   return serve(req,res);
