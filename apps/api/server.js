@@ -875,20 +875,63 @@ if(automationsChanged){
   writeDB(db);
 }
   if(migrateUsers(db)) writeDB(db);
-  if(c==='login'&&req.method==='POST'){
-    const b=await body(req);
-    const u=(db.users||[]).find(x=>x.email===b.email && x.status!=='Inactivo');
-    if(!u || !verifyPassword(b.password,u.passwordHash)){
-      log(db,'login_failed','users','Intento fallido '+(b.email||'sin email'));
-      writeDB(db);
-      return js(res,401,{error:'Credenciales inválidas'});
-    }
-    const session=createSession(u);
-    log(db,'login','users','Ingreso '+u.email);
+if(c==='login'&&req.method==='POST'){
+  const b=await body(req);
+
+  const email=String(b.email||'')
+    .trim()
+    .toLowerCase();
+
+  const u=(db.users||[]).find(
+    x=>String(x.email||'').trim().toLowerCase()===email &&
+       x.status!=='Inactivo'
+  );
+
+  if(!u || !verifyPassword(b.password,u.passwordHash)){
+    log(
+      db,
+      'login_failed',
+      'users',
+      'Intento fallido '+(email||'sin email')
+    );
+
     writeDB(db);
-    return js(res,200,{ok:true,user:sanitizeUser(u),...session});
+
+    return js(res,401,{
+      error:'Credenciales inválidas'
+    });
   }
-  if(c==='logout'&&req.method==='POST'){revokeSession(req);return js(res,200,{ok:true})}
+
+  const session=createSession(u);
+
+  res.setHeader(
+    'Set-Cookie',
+    createSessionCookie(
+      session.token,
+      session.expiresAt
+    )
+  );
+
+  log(db,'login','users','Ingreso '+u.email);
+  writeDB(db);
+
+  return js(res,200,{
+    ok:true,
+    user:sanitizeUser(u),
+    ...session
+  });
+}
+
+if(c==='logout'&&req.method==='POST'){
+  revokeSession(req);
+
+  res.setHeader(
+    'Set-Cookie',
+    clearSessionCookie()
+  );
+
+  return js(res,200,{ok:true});
+}
   const session=getSession(req);
   if(!session)return js(res,401,{error:'Sesión inválida o vencida'});
   const authUser=(db.users||[]).find(x=>x.id===session.userId);
