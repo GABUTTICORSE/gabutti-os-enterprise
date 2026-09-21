@@ -638,17 +638,14 @@ async function api(path, options = {}) {
     ...(options.headers || {})
   };
 
-  if (localStorage.gsone_token) {
-    headers.Authorization =
-      `Bearer ${localStorage.gsone_token}`;
-  }
 
   const response = await fetch(
     path,
     {
-      ...options,
-      headers
-    }
+  ...options,
+  headers,
+  credentials: 'same-origin'
+}
   );
 
   let data;
@@ -665,12 +662,10 @@ async function api(path, options = {}) {
   }
 
   if (
-    response.status === 401 &&
-    path !== '/api/login'
-  ) {
-    localStorage.removeItem(
-      'gsone_token'
-    );
+  response.status === 401 &&
+  path !== '/api/login' &&
+  path !== '/api/me'
+) {
 
     localStorage.removeItem(
       'gsone_user'
@@ -779,9 +774,6 @@ loginForm.onsubmit =
         currentUser
       );
 
-    localStorage.gsone_token =
-      response.token;
-
     showApp();
   };
 
@@ -809,10 +801,6 @@ async function logout() {
     {
       method: 'POST'
     }
-  );
-
-  localStorage.removeItem(
-    'gsone_token'
   );
 
   localStorage.removeItem(
@@ -1741,35 +1729,21 @@ async function loadIdentity() {
 /* =========================================================
    RESTAURAR SESIÓN
    ========================================================= */
-
 (async () => {
   try {
-    const savedUser =
-      localStorage.gsone_user;
+    const response =
+      await api('/api/me');
 
-    const token =
-      localStorage.gsone_token;
+    if (response.user) {
+      currentUser =
+        response.user;
 
-    if (
-      savedUser &&
-      token
-    ) {
-      const response =
-        await api(
-          '/api/me'
+      localStorage.gsone_user =
+        JSON.stringify(
+          currentUser
         );
 
-      if (response.user) {
-        currentUser =
-          response.user;
-
-        localStorage.gsone_user =
-          JSON.stringify(
-            currentUser
-          );
-
-        showApp();
-      }
+      showApp();
     }
 
   } catch (error) {
@@ -1779,3 +1753,4 @@ async function loadIdentity() {
     );
   }
 })();
+
