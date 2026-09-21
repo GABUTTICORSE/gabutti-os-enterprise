@@ -1847,7 +1847,7 @@ function serve(req,res){
   if(u==='/')u='/index.html';
 
   if(
-    u.toLowerCase().endsWith('.bak') ||
+    u.toLowerCase().includes('.bak') ||
     u.includes('/.')
   ){
     return js(res,404,{error:'not found'});
