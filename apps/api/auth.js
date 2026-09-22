@@ -7,6 +7,88 @@ const SESSION_IDLE_MINUTES = 30;
 const SESSION_ROTATION_MINUTES = 30;
 const SESSION_COOKIE = 'gsone_session';
 
+const TOTP_ENCRYPTION_ALGORITHM = 'aes-256-gcm';
+
+function getTotpEncryptionKey() {
+  const encoded = String(
+    process.env.GS_ONE_TOTP_ENCRYPTION_KEY || ''
+  ).trim();
+
+  if (!encoded) {
+    throw new Error(
+      'GS_ONE_TOTP_ENCRYPTION_KEY no configurada'
+    );
+  }
+
+  const key = Buffer.from(encoded, 'base64');
+
+  if (key.length !== 32) {
+    throw new Error(
+      'GS_ONE_TOTP_ENCRYPTION_KEY debe contener 32 bytes'
+    );
+  }
+
+  return key;
+}
+
+function encryptTotpSecret(secret) {
+  const iv = crypto.randomBytes(12);
+  const key = getTotpEncryptionKey();
+
+  const cipher = crypto.createCipheriv(
+    TOTP_ENCRYPTION_ALGORITHM,
+    key,
+    iv
+  );
+
+  const encrypted = Buffer.concat([
+    cipher.update(String(secret), 'utf8'),
+    cipher.final()
+  ]);
+
+  const tag = cipher.getAuthTag();
+
+  return [
+    'v1',
+    iv.toString('base64'),
+    tag.toString('base64'),
+    encrypted.toString('base64')
+  ].join(':');
+}
+
+function decryptTotpSecret(stored) {
+  const parts = String(stored || '').split(':');
+
+  if (
+    parts.length !== 4 ||
+    parts[0] !== 'v1'
+  ) {
+    throw new Error(
+      'Secreto TOTP cifrado inválido'
+    );
+  }
+
+  const [, iv64, tag64, encrypted64] = parts;
+  const key = getTotpEncryptionKey();
+
+  const decipher = crypto.createDecipheriv(
+    TOTP_ENCRYPTION_ALGORITHM,
+    key,
+    Buffer.from(iv64, 'base64')
+  );
+
+  decipher.setAuthTag(
+    Buffer.from(tag64, 'base64')
+  );
+
+  return Buffer.concat([
+    decipher.update(
+      Buffer.from(encrypted64, 'base64')
+    ),
+    decipher.final()
+  ]).toString('utf8');
+}
+
 function hashPassword(
   password,
   salt = crypto.randomBytes(16).toString('hex')
@@ -290,6 +372,8 @@ module.exports = {
   clearSessionCookie,
   createSession,
   createSessionCookie,
+  decryptTotpSecret,
+  encryptTotpSecret,
   getSession,
   hashPassword,
   migrateUsers,
