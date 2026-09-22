@@ -2,11 +2,13 @@ const assert = require('assert');
 const {
   decryptTotpSecret,
   encryptTotpSecret,
+  generateRecoveryCodes,
   generateTotpCode,
   hashPassword,
   verifyPassword,
   sanitizeUser,
   migrateUsers,
+  verifyRecoveryCode,
   verifyTotpCode
 } = require('../auth');
 
@@ -81,6 +83,46 @@ assert.strictEqual(
   ),
   false,
   'TOTP incorrecto debe ser rechazado'
+);
+
+
+const recovery =
+  generateRecoveryCodes();
+
+assert.strictEqual(
+  recovery.codes.length,
+  10,
+  'Deben generarse 10 códigos de recuperación'
+);
+
+assert.strictEqual(
+  recovery.hashes.length,
+  10,
+  'Deben generarse 10 hashes de recuperación'
+);
+
+assert.strictEqual(
+  new Set(recovery.codes).size,
+  10,
+  'Los códigos de recuperación deben ser únicos'
+);
+
+assert.strictEqual(
+  verifyRecoveryCode(
+    recovery.codes[0],
+    recovery.hashes
+  ),
+  true,
+  'Un código de recuperación válido debe aceptarse'
+);
+
+assert.strictEqual(
+  verifyRecoveryCode(
+    'AAAA-BBBB-CCCC-DDDD',
+    recovery.hashes
+  ),
+  false,
+  'Un código de recuperación incorrecto debe rechazarse'
 );
 
 console.log('auth.test.js OK');

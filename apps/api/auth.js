@@ -248,6 +248,67 @@ function verifyTotpCode(
   return false;
 }
 
+
+function hashRecoveryCode(code) {
+  return crypto
+    .createHash('sha256')
+    .update(
+      String(code || '')
+        .trim()
+        .toUpperCase()
+    )
+    .digest('hex');
+}
+
+function generateRecoveryCodes(count = 10) {
+  const codes = [];
+
+  for (let i = 0; i < count; i += 1) {
+    const raw = crypto
+      .randomBytes(8)
+      .toString('hex')
+      .toUpperCase();
+
+    codes.push(
+      `${raw.slice(0, 4)}-${raw.slice(4, 8)}-` +
+      `${raw.slice(8, 12)}-${raw.slice(12, 16)}`
+    );
+  }
+
+  return {
+    codes,
+    hashes: codes.map(hashRecoveryCode)
+  };
+}
+
+function verifyRecoveryCode(
+  code,
+  storedHashes
+) {
+  const candidate =
+    hashRecoveryCode(code);
+
+  for (const stored of storedHashes || []) {
+    const actual =
+      Buffer.from(candidate, 'hex');
+
+    const expected =
+      Buffer.from(String(stored), 'hex');
+
+    if (
+      actual.length === expected.length &&
+      crypto.timingSafeEqual(
+        actual,
+        expected
+      )
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function hashPassword(
   password,
   salt = crypto.randomBytes(16).toString('hex')
@@ -535,14 +596,16 @@ module.exports = {
   encodeBase32,
   encryptTotpSecret,
   decodeBase32,
+  generateRecoveryCodes,
   generateTotpCode,
   generateTotpSecret,
   getSession,
+  hashRecoveryCode,
   verifyTotpCode,
   hashPassword,
   migrateUsers,
   revokeSession,
   rotateSession,
   sanitizeUser,
-  verifyPassword
-};
+  verifyPassword,
+  verifyRecoveryCode};
