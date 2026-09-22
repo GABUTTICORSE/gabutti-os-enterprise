@@ -12,3 +12,8 @@ AUDITORIA_GS_ONE_ETAPA_0.txt
 DASHBOARD_ACTUAL_GS_ONE.txt
 estado_*.txt
 /index.html
+
+# Variables de entorno y secretos locales
+.env
+.env.*
+!.env.example
