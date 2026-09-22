@@ -3,13 +3,16 @@ const {
   clearSessionCookie,
   createSession,
   createSessionCookie,
+  decryptTotpSecret,
   getSession,
   hashPassword,
   migrateUsers,
   revokeSession,
   rotateSession,
   sanitizeUser,
-  verifyPassword
+  verifyPassword,
+  verifyRecoveryCode,
+  verifyTotpCode
 } = require('./auth');
 const {
   runAutomations,
@@ -282,6 +285,105 @@ const LOGIN_IP_MAX_ATTEMPTS = 20;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LOCK_MS = 15 * 60 * 1000;
 const LOGIN_MAP_MAX_ENTRIES = 10000;
+
+const twoFactorChallenges = new Map();
+
+const TWO_FACTOR_CHALLENGE_MS =
+  5 * 60 * 1000;
+
+const TWO_FACTOR_MAX_ATTEMPTS = 5;
+
+const TWO_FACTOR_MAP_MAX_ENTRIES = 1000;
+
+function createTwoFactorChallenge(
+  userId,
+  ip
+) {
+  const token = require('crypto')
+    .randomBytes(32)
+    .toString('hex');
+
+  const now = Date.now();
+
+  twoFactorChallenges.set(token, {
+    userId,
+    ip,
+    createdAt: now,
+    expiresAt:
+      now + TWO_FACTOR_CHALLENGE_MS,
+    attempts: 0
+  });
+
+  while (
+    twoFactorChallenges.size >
+    TWO_FACTOR_MAP_MAX_ENTRIES
+  ) {
+    const oldest =
+      twoFactorChallenges.keys()
+        .next().value;
+
+    if (oldest === undefined) break;
+
+    twoFactorChallenges.delete(oldest);
+  }
+
+  return {
+    token,
+    expiresAt:
+      now + TWO_FACTOR_CHALLENGE_MS
+  };
+}
+
+function getTwoFactorChallenge(
+  token,
+  ip
+) {
+  const challenge =
+    twoFactorChallenges.get(
+      String(token || '')
+    );
+
+  if (!challenge) return null;
+
+  if (
+    challenge.expiresAt <= Date.now() ||
+    challenge.ip !== ip ||
+    challenge.attempts >=
+      TWO_FACTOR_MAX_ATTEMPTS
+  ) {
+    twoFactorChallenges.delete(
+      String(token || '')
+    );
+
+    return null;
+  }
+
+  return challenge;
+}
+
+function failTwoFactorChallenge(token) {
+  const key = String(token || '');
+  const challenge =
+    twoFactorChallenges.get(key);
+
+  if (!challenge) return;
+
+  challenge.attempts += 1;
+
+  if (
+    challenge.attempts >=
+      TWO_FACTOR_MAX_ATTEMPTS
+  ) {
+    twoFactorChallenges.delete(key);
+  }
+}
+
+function consumeTwoFactorChallenge(token) {
+  twoFactorChallenges.delete(
+    String(token || '')
+  );
+}
+
 
 function getClientIp(req) {
   const isRailway =
@@ -1302,6 +1404,49 @@ if(c==='login'&&req.method==='POST'){
   }
   clearFailedLogins(loginKey);
 
+  if (u.totpEnabled === true) {
+    if (!u.totpSecretEncrypted) {
+      log(
+        db,
+        'login_2fa_error',
+        'users',
+        '2FA activo sin secreto para '+u.email+
+          ' · IP '+loginIp
+      );
+
+      writeDB(db);
+
+      return js(res,503,{
+        error:'Segundo factor no disponible'
+      });
+    }
+
+    const challenge =
+      createTwoFactorChallenge(
+        u.id,
+        loginIp
+      );
+
+    log(
+      db,
+      'login_2fa_required',
+      'users',
+      'Segundo factor requerido para '+
+        u.email+' · IP '+loginIp
+    );
+
+    writeDB(db);
+
+    return js(res,200,{
+      ok:false,
+      requiresTwoFactor:true,
+      challenge:challenge.token,
+      expiresAt:new Date(
+        challenge.expiresAt
+      ).toISOString()
+    });
+  }
+
   const session=createSession(u);
 
   res.setHeader(
@@ -1325,6 +1470,125 @@ if(c==='login'&&req.method==='POST'){
   user:sanitizeUser(u),
   expiresAt:session.expiresAt
 });
+}
+
+
+if(c==='login/2fa'&&req.method==='POST'){
+  const b=await body(req);
+
+  const challengeToken=
+    String(b.challenge||'').trim();
+
+  const code=
+    String(b.code||'').trim();
+
+  const loginIp=getClientIp(req);
+
+  const challenge=
+    getTwoFactorChallenge(
+      challengeToken,
+      loginIp
+    );
+
+  if(!challenge){
+    return js(res,401,{
+      error:'Desafío de segundo factor inválido o vencido'
+    });
+  }
+
+  const u=(db.users||[]).find(
+    x=>x.id===challenge.userId &&
+       x.status!=='Inactivo' &&
+       x.totpEnabled===true
+  );
+
+  if(!u || !u.totpSecretEncrypted){
+    consumeTwoFactorChallenge(
+      challengeToken
+    );
+
+    return js(res,401,{
+      error:'Segundo factor inválido'
+    });
+  }
+
+  let totpValid=false;
+
+  try{
+    const secret=
+      decryptTotpSecret(
+        u.totpSecretEncrypted
+      );
+
+    totpValid=
+      verifyTotpCode(
+        secret,
+        code
+      );
+  }catch(error){
+    console.error(
+      'Error validando TOTP:',
+      error
+    );
+
+    consumeTwoFactorChallenge(
+      challengeToken
+    );
+
+    return js(res,503,{
+      error:'Segundo factor no disponible'
+    });
+  }
+
+  if(!totpValid){
+    failTwoFactorChallenge(
+      challengeToken
+    );
+
+    log(
+      db,
+      'login_2fa_failed',
+      'users',
+      'Segundo factor inválido para '+
+        u.email+' · IP '+loginIp
+    );
+
+    writeDB(db);
+
+    return js(res,401,{
+      error:'Código de segundo factor inválido'
+    });
+  }
+
+  consumeTwoFactorChallenge(
+    challengeToken
+  );
+
+  const session=createSession(u);
+
+  res.setHeader(
+    'Set-Cookie',
+    createSessionCookie(
+      session.token,
+      session.expiresAt
+    )
+  );
+
+  log(
+    db,
+    'login_2fa',
+    'users',
+    'Ingreso con segundo factor '+
+      u.email+' · IP '+loginIp
+  );
+
+  writeDB(db);
+
+  return js(res,200,{
+    ok:true,
+    user:sanitizeUser(u),
+    expiresAt:session.expiresAt
+  });
 }
 
 if(c==='logout'&&req.method==='POST'){

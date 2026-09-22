@@ -572,6 +572,16 @@ function migrateUsers(db) {
       changed = true;
     }
 
+    if (user.totpEnabled === undefined) {
+      user.totpEnabled = false;
+      changed = true;
+    }
+
+    if (!Array.isArray(user.recoveryCodeHashes)) {
+      user.recoveryCodeHashes = [];
+      changed = true;
+    }
+
     if (
       !user.passwordHash &&
       user.password
