@@ -89,6 +89,165 @@ function decryptTotpSecret(stored) {
   ]).toString('utf8');
 }
 
+
+const BASE32_ALPHABET =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+function encodeBase32(buffer) {
+  let bits = '';
+  let output = '';
+
+  for (const byte of buffer) {
+    bits += byte.toString(2).padStart(8, '0');
+  }
+
+  for (let i = 0; i < bits.length; i += 5) {
+    const chunk = bits.slice(i, i + 5);
+
+    const padded =
+      chunk.padEnd(5, '0');
+
+    output += BASE32_ALPHABET[
+      parseInt(padded, 2)
+    ];
+  }
+
+  return output;
+}
+
+function decodeBase32(value) {
+  const normalized = String(value || '')
+    .toUpperCase()
+    .replace(/[\s=-]/g, '');
+
+  if (!normalized) {
+    throw new Error(
+      'Secreto TOTP Base32 vacío'
+    );
+  }
+
+  let bits = '';
+
+  for (const char of normalized) {
+    const index =
+      BASE32_ALPHABET.indexOf(char);
+
+    if (index < 0) {
+      throw new Error(
+        'Secreto TOTP Base32 inválido'
+      );
+    }
+
+    bits += index
+      .toString(2)
+      .padStart(5, '0');
+  }
+
+  const bytes = [];
+
+  for (
+    let i = 0;
+    i + 8 <= bits.length;
+    i += 8
+  ) {
+    bytes.push(
+      parseInt(bits.slice(i, i + 8), 2)
+    );
+  }
+
+  return Buffer.from(bytes);
+}
+
+function generateTotpSecret() {
+  return encodeBase32(
+    crypto.randomBytes(20)
+  );
+}
+
+
+function generateTotpCode(
+  secret,
+  timestamp = Date.now()
+) {
+  const key = decodeBase32(secret);
+
+  const counter = Math.floor(
+    Number(timestamp) / 1000 / 30
+  );
+
+  const counterBuffer =
+    Buffer.alloc(8);
+
+  counterBuffer.writeBigUInt64BE(
+    BigInt(counter)
+  );
+
+  const digest = crypto
+    .createHmac('sha1', key)
+    .update(counterBuffer)
+    .digest();
+
+  const offset =
+    digest[digest.length - 1] & 0x0f;
+
+  const binary =
+    (
+      ((digest[offset] & 0x7f) << 24) |
+      ((digest[offset + 1] & 0xff) << 16) |
+      ((digest[offset + 2] & 0xff) << 8) |
+      (digest[offset + 3] & 0xff)
+    ) >>> 0;
+
+  return String(
+    binary % 1000000
+  ).padStart(6, '0');
+}
+
+function verifyTotpCode(
+  secret,
+  code,
+  timestamp = Date.now(),
+  window = 1
+) {
+  const normalizedCode =
+    String(code || '').trim();
+
+  if (!/^\d{6}$/.test(normalizedCode)) {
+    return false;
+  }
+
+  for (
+    let offset = -window;
+    offset <= window;
+    offset += 1
+  ) {
+    const expected = generateTotpCode(
+      secret,
+      Number(timestamp) +
+        offset * 30000
+    );
+
+    const actualBuffer =
+      Buffer.from(normalizedCode);
+
+    const expectedBuffer =
+      Buffer.from(expected);
+
+    if (
+      actualBuffer.length ===
+        expectedBuffer.length &&
+      crypto.timingSafeEqual(
+        actualBuffer,
+        expectedBuffer
+      )
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function hashPassword(
   password,
   salt = crypto.randomBytes(16).toString('hex')
@@ -373,8 +532,13 @@ module.exports = {
   createSession,
   createSessionCookie,
   decryptTotpSecret,
+  encodeBase32,
   encryptTotpSecret,
+  decodeBase32,
+  generateTotpCode,
+  generateTotpSecret,
   getSession,
+  verifyTotpCode,
   hashPassword,
   migrateUsers,
   revokeSession,

@@ -2,10 +2,12 @@ const assert = require('assert');
 const {
   decryptTotpSecret,
   encryptTotpSecret,
+  generateTotpCode,
   hashPassword,
   verifyPassword,
   sanitizeUser,
-  migrateUsers
+  migrateUsers,
+  verifyTotpCode
 } = require('../auth');
 
 const testPassword = 'test-password-local';
@@ -42,6 +44,43 @@ assert.strictEqual(
   decryptTotpSecret(encryptedTotpSecret),
   testTotpSecret,
   'El secreto TOTP debe descifrarse correctamente'
+);
+
+
+const rfcTotpSecret =
+  'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+
+const rfcTotpTimestamp = 59 * 1000;
+
+assert.strictEqual(
+  generateTotpCode(
+    rfcTotpSecret,
+    rfcTotpTimestamp
+  ),
+  '287082',
+  'TOTP debe coincidir con el vector RFC'
+);
+
+assert.strictEqual(
+  verifyTotpCode(
+    rfcTotpSecret,
+    '287082',
+    rfcTotpTimestamp,
+    0
+  ),
+  true,
+  'TOTP válido debe ser aceptado'
+);
+
+assert.strictEqual(
+  verifyTotpCode(
+    rfcTotpSecret,
+    '000000',
+    rfcTotpTimestamp,
+    0
+  ),
+  false,
+  'TOTP incorrecto debe ser rechazado'
 );
 
 console.log('auth.test.js OK');
