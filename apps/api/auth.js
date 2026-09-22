@@ -309,6 +309,46 @@ function verifyRecoveryCode(
   return false;
 }
 
+function consumeRecoveryCode(
+  code,
+  storedHashes
+) {
+  if (!Array.isArray(storedHashes)) {
+    return false;
+  }
+
+  const candidate =
+    Buffer.from(
+      hashRecoveryCode(code),
+      'hex'
+    );
+
+  for (
+    let i = 0;
+    i < storedHashes.length;
+    i += 1
+  ) {
+    const expected =
+      Buffer.from(
+        String(storedHashes[i]),
+        'hex'
+      );
+
+    if (
+      candidate.length === expected.length &&
+      crypto.timingSafeEqual(
+        candidate,
+        expected
+      )
+    ) {
+      storedHashes.splice(i, 1);
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function hashPassword(
   password,
   salt = crypto.randomBytes(16).toString('hex')
@@ -600,6 +640,7 @@ function migrateUsers(db) {
 
 module.exports = {
   clearSessionCookie,
+  consumeRecoveryCode,
   createSession,
   createSessionCookie,
   decryptTotpSecret,

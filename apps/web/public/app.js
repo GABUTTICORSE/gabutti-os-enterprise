@@ -664,6 +664,7 @@ async function api(path, options = {}) {
   if (
   response.status === 401 &&
   path !== '/api/login' &&
+  path !== '/api/login/2fa' &&
   path !== '/api/me'
 ) {
 
@@ -737,6 +738,13 @@ const clientProfile =
     'clientProfile'
   );
 
+const twoFactorForm =
+  document.getElementById(
+    'twoFactorForm'
+  );
+
+let twoFactorChallenge = null;
+
 loginForm.onsubmit =
   async event => {
     event.preventDefault();
@@ -765,6 +773,87 @@ loginForm.onsubmit =
 
       return;
     }
+
+    if (response.requiresTwoFactor) {
+      twoFactorChallenge =
+        response.challenge;
+
+      loginForm.classList.add(
+        'hidden'
+      );
+
+      twoFactorForm.classList.remove(
+        'hidden'
+      );
+
+      const codeInput =
+        twoFactorForm.querySelector(
+          'input[name="code"]'
+        );
+
+      if (codeInput) {
+        codeInput.value = '';
+        codeInput.focus();
+      }
+
+      return;
+    }
+
+    currentUser =
+      response.user;
+
+    localStorage.gsone_user =
+      JSON.stringify(
+        currentUser
+      );
+
+    showApp();
+  };
+
+twoFactorForm.onsubmit =
+  async event => {
+    event.preventDefault();
+
+    if (!twoFactorChallenge) {
+      alert(
+        'El desafío de seguridad venció. Ingresa nuevamente.'
+      );
+
+      location.reload();
+      return;
+    }
+
+    const formData =
+      new FormData(event.target);
+
+    const code =
+      String(
+        formData.get('code') || ''
+      ).trim();
+
+    const response =
+      await api(
+        '/api/login/2fa',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            challenge:
+              twoFactorChallenge,
+            code
+          })
+        }
+      );
+
+    if (!response.ok) {
+      alert(
+        response.error ||
+        'Código de seguridad inválido'
+      );
+
+      return;
+    }
+
+    twoFactorChallenge = null;
 
     currentUser =
       response.user;
@@ -1633,6 +1722,43 @@ async function loadIdentity() {
     </div>
 
     <h3>
+      Seguridad de acceso
+    </h3>
+
+    <div class="identity-card">
+      <span>
+        Autenticación en dos pasos
+      </span>
+
+      <strong>
+        ${
+          data.twoFactor?.enabled
+            ? 'ACTIVADA'
+            : 'DESACTIVADA'
+        }
+      </strong>
+
+      <small>
+        ${
+          data.twoFactor?.enabled
+            ? 'Tu cuenta requiere contraseña y código de seguridad.'
+            : 'Protege tu cuenta con Authenticator y códigos de recuperación.'
+        }
+      </small>
+
+      ${
+        data.twoFactor?.enabled
+          ? tag('2FA activo', 'green')
+          : `<button
+               type="button"
+               onclick="startTwoFactorSetup()"
+             >
+               Activar autenticación en dos pasos
+             </button>`
+      }
+    </div>
+
+    <h3>
       Personas
     </h3>
 
@@ -1723,6 +1849,94 @@ async function loadIdentity() {
       }
     </div>
   `;
+}
+
+
+async function startTwoFactorSetup() {
+  const password =
+    prompt(
+      'Confirma tu contraseña de GS ONE:'
+    );
+
+  if (!password) {
+    return;
+  }
+
+  const setup =
+    await api(
+      '/api/2fa-setup',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          password
+        })
+      }
+    );
+
+  if (!setup.ok) {
+    alert(
+      setup.error ||
+      'No fue posible iniciar 2FA'
+    );
+
+    return;
+  }
+
+  const message =
+    'CONFIGURACIÓN AUTHENTICATOR\n\n' +
+    '1. Abre Google Authenticator o Microsoft Authenticator.\n' +
+    '2. Agrega una cuenta manualmente.\n' +
+    '3. Nombre: GS ONE\n' +
+    '4. Clave secreta:\n\n' +
+    setup.secret +
+    '\n\n' +
+    'Luego ingresa el código de 6 dígitos que genere la aplicación.';
+
+  alert(message);
+
+  const code =
+    prompt(
+      'Código de 6 dígitos de Authenticator:'
+    );
+
+  if (!code) {
+    return;
+  }
+
+  const enabled =
+    await api(
+      '/api/2fa-enable',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          setupToken:
+            setup.setupToken,
+          code:
+            String(code).trim()
+        })
+      }
+    );
+
+  if (!enabled.ok) {
+    alert(
+      enabled.error ||
+      'No fue posible activar 2FA'
+    );
+
+    return;
+  }
+
+  const recoveryCodes =
+    enabled.recoveryCodes || [];
+
+  alert(
+    '2FA ACTIVADO CORRECTAMENTE.\n\n' +
+    'GUARDA ESTOS CÓDIGOS DE RECUPERACIÓN EN UN LUGAR SEGURO.\n' +
+    'CADA CÓDIGO FUNCIONA UNA SOLA VEZ:\n\n' +
+    recoveryCodes.join('\n')
+  );
+
+  await loadIdentity();
 }
 
 

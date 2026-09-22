@@ -1,9 +1,13 @@
 const http=require('http'),fs=require('fs'),path=require('path');
 const {
   clearSessionCookie,
+  consumeRecoveryCode,
   createSession,
   createSessionCookie,
   decryptTotpSecret,
+  encryptTotpSecret,
+  generateRecoveryCodes,
+  generateTotpSecret,
   getSession,
   hashPassword,
   migrateUsers,
@@ -11,7 +15,6 @@ const {
   rotateSession,
   sanitizeUser,
   verifyPassword,
-  verifyRecoveryCode,
   verifyTotpCode
 } = require('./auth');
 const {
@@ -384,6 +387,78 @@ function consumeTwoFactorChallenge(token) {
   );
 }
 
+
+const twoFactorSetups = new Map();
+
+const TWO_FACTOR_SETUP_MS =
+  10 * 60 * 1000;
+
+function createTwoFactorSetup(userId) {
+  const secret =
+    generateTotpSecret();
+
+  const token = require('crypto')
+    .randomBytes(32)
+    .toString('hex');
+
+  const now = Date.now();
+
+  for (
+    const [key, setup]
+    of twoFactorSetups.entries()
+  ) {
+    if (
+      setup.expiresAt <= now ||
+      setup.userId === userId
+    ) {
+      twoFactorSetups.delete(key);
+    }
+  }
+
+  twoFactorSetups.set(token, {
+    userId,
+    secret,
+    createdAt: now,
+    expiresAt:
+      now + TWO_FACTOR_SETUP_MS
+  });
+
+  return {
+    token,
+    secret,
+    expiresAt:
+      now + TWO_FACTOR_SETUP_MS
+  };
+}
+
+function getTwoFactorSetup(
+  token,
+  userId
+) {
+  const key =
+    String(token || '');
+
+  const setup =
+    twoFactorSetups.get(key);
+
+  if (!setup) return null;
+
+  if (
+    setup.expiresAt <= Date.now() ||
+    setup.userId !== userId
+  ) {
+    twoFactorSetups.delete(key);
+    return null;
+  }
+
+  return setup;
+}
+
+function consumeTwoFactorSetup(token) {
+  twoFactorSetups.delete(
+    String(token || '')
+  );
+}
 
 function getClientIp(req) {
   const isRailway =
@@ -1540,7 +1615,17 @@ if(c==='login/2fa'&&req.method==='POST'){
     });
   }
 
+  let recoveryValid=false;
+
   if(!totpValid){
+    recoveryValid=
+      consumeRecoveryCode(
+        code,
+        u.recoveryCodeHashes
+      );
+  }
+
+  if(!totpValid && !recoveryValid){
     failTwoFactorChallenge(
       challengeToken
     );
@@ -1558,6 +1643,18 @@ if(c==='login/2fa'&&req.method==='POST'){
     return js(res,401,{
       error:'Código de segundo factor inválido'
     });
+  }
+
+  if(recoveryValid){
+    log(
+      db,
+      'login_2fa_recovery',
+      'users',
+      'Código de recuperación utilizado por '+
+        u.email+' · IP '+loginIp
+    );
+
+    writeDB(db);
   }
 
   consumeTwoFactorChallenge(
@@ -1656,7 +1753,134 @@ if(c==='logout'&&req.method==='POST'){
     });
   }
   if(c==='me'&&req.method==='GET')return js(res,200,{user:sanitizeUser(authUser),session:{createdAt:session.createdAt,expiresAt:session.expiresAt}});
-  if(c==='identity'&&req.method==='GET')return js(res,200,{organization:authUser.organization||'Gabutti Corse',people:(db.users||[]).map(sanitizeUser),roles:db.roles||[],accessLog:(db.activity||[]).filter(x=>['login','login_failed','logout'].includes(x.action)).slice(0,25)});
+  if(c==='identity'&&req.method==='GET')return js(res,200,{organization:authUser.organization||'Gabutti Corse',people:(db.users||[]).map(sanitizeUser),roles:db.roles||[],accessLog:(db.activity||[]).filter(x=>['login','login_failed','logout','login_2fa','login_2fa_failed','login_2fa_recovery'].includes(x.action)).slice(0,25),twoFactor:{enabled:authUser.totpEnabled===true}});
+  if(c==='2fa-setup'&&req.method==='POST'){
+    const b=await body(req);
+
+    if(!verifyPassword(
+      b.password,
+      authUser.passwordHash
+    )){
+      return js(res,401,{
+        error:'Contraseña inválida'
+      });
+    }
+
+    if(authUser.totpEnabled===true){
+      return js(res,409,{
+        error:'El segundo factor ya está activo'
+      });
+    }
+
+    const setup=
+      createTwoFactorSetup(
+        authUser.id
+      );
+
+    const issuer='GS ONE';
+    const account=
+      String(authUser.email||'')
+        .trim();
+
+    const otpauth=
+      'otpauth://totp/'+
+      encodeURIComponent(
+        issuer+':'+account
+      )+
+      '?secret='+
+      encodeURIComponent(
+        setup.secret
+      )+
+      '&issuer='+
+      encodeURIComponent(issuer)+
+      '&algorithm=SHA1&digits=6&period=30';
+
+    log(
+      db,
+      '2fa_setup_started',
+      'users',
+      'Configuración 2FA iniciada por '+
+        authUser.email+
+        ' · IP '+getClientIp(req)
+    );
+
+    writeDB(db);
+
+    return js(res,200,{
+      ok:true,
+      setupToken:setup.token,
+      secret:setup.secret,
+      otpauth,
+      expiresAt:new Date(
+        setup.expiresAt
+      ).toISOString()
+    });
+  }
+
+  if(c==='2fa-enable'&&req.method==='POST'){
+    const b=await body(req);
+
+    if(authUser.totpEnabled===true){
+      return js(res,409,{
+        error:'El segundo factor ya está activo'
+      });
+    }
+
+    const setup=
+      getTwoFactorSetup(
+        b.setupToken,
+        authUser.id
+      );
+
+    if(!setup){
+      return js(res,401,{
+        error:'Configuración 2FA inválida o vencida'
+      });
+    }
+
+    if(!verifyTotpCode(
+      setup.secret,
+      String(b.code||'').trim()
+    )){
+      return js(res,401,{
+        error:'Código Authenticator inválido'
+      });
+    }
+
+    const recovery=
+      generateRecoveryCodes(10);
+
+    authUser.totpSecretEncrypted=
+      encryptTotpSecret(
+        setup.secret
+      );
+
+    authUser.recoveryCodeHashes=
+      recovery.hashes;
+
+    authUser.totpEnabled=true;
+
+    consumeTwoFactorSetup(
+      b.setupToken
+    );
+
+    log(
+      db,
+      '2fa_enabled',
+      'users',
+      'Segundo factor activado por '+
+        authUser.email+
+        ' · IP '+getClientIp(req)
+    );
+
+    writeDB(db);
+
+    return js(res,200,{
+      ok:true,
+      recoveryCodes:recovery.codes
+    });
+  }
+
   if(c==='dashboard'&&req.method==='GET')return js(res,200,dashboard(db));
   if(c==='motorsport' && id==='news' && req.method==='GET'){
     try{
