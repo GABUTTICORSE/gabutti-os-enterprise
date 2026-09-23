@@ -765,15 +765,6 @@ loginForm.onsubmit =
         }
       );
 
-    if (!response.ok) {
-      alert(
-        response.error ||
-        'Error'
-      );
-
-      return;
-    }
-
     if (response.requiresTwoFactor) {
       twoFactorChallenge =
         response.challenge;
@@ -795,6 +786,15 @@ loginForm.onsubmit =
         codeInput.value = '';
         codeInput.focus();
       }
+
+      return;
+    }
+
+    if (!response.ok) {
+      alert(
+        response.error ||
+        'Error'
+      );
 
       return;
     }

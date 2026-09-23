@@ -1396,7 +1396,7 @@ if(automationsChanged){
   writeDB(db);
 }
   if(migrateUsers(db)) writeDB(db);
-if(c==='login'&&req.method==='POST'){
+if(c==='login'&&!id&&req.method==='POST'){
   const b=await body(req);
 
   const email=String(b.email||'')
@@ -1548,7 +1548,7 @@ if(c==='login'&&req.method==='POST'){
 }
 
 
-if(c==='login/2fa'&&req.method==='POST'){
+if(c==='login'&&id==='2fa'&&req.method==='POST'){
   const b=await body(req);
 
   const challengeToken=
