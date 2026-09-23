@@ -1881,6 +1881,100 @@ if(c==='logout'&&req.method==='POST'){
     });
   }
 
+  if(c==='2fa-recovery-regenerate'&&req.method==='POST'){
+    const b=await body(req);
+
+    if(authUser.totpEnabled!==true ||
+       !authUser.totpSecretEncrypted){
+      return js(res,409,{
+        error:'El segundo factor no está activo'
+      });
+    }
+
+    if(!verifyPassword(
+      b.password,
+      authUser.passwordHash
+    )){
+      log(
+        db,
+        '2fa_recovery_regenerate_failed',
+        'users',
+        'Contraseña inválida al regenerar códigos para '+
+          authUser.email+
+          ' · IP '+getClientIp(req)
+      );
+
+      writeDB(db);
+
+      return js(res,401,{
+        error:'Credenciales inválidas'
+      });
+    }
+
+    let totpValid=false;
+
+    try{
+      const secret=
+        decryptTotpSecret(
+          authUser.totpSecretEncrypted
+        );
+
+      totpValid=
+        verifyTotpCode(
+          secret,
+          String(b.code||'').trim()
+        );
+    }catch(error){
+      console.error(
+        'Error validando TOTP para regeneración:',
+        error
+      );
+
+      return js(res,503,{
+        error:'Segundo factor no disponible'
+      });
+    }
+
+    if(!totpValid){
+      log(
+        db,
+        '2fa_recovery_regenerate_failed',
+        'users',
+        'TOTP inválido al regenerar códigos para '+
+          authUser.email+
+          ' · IP '+getClientIp(req)
+      );
+
+      writeDB(db);
+
+      return js(res,401,{
+        error:'Código Authenticator inválido'
+      });
+    }
+
+    const recovery=
+      generateRecoveryCodes(10);
+
+    authUser.recoveryCodeHashes=
+      recovery.hashes;
+
+    log(
+      db,
+      '2fa_recovery_regenerated',
+      'users',
+      'Códigos de recuperación regenerados por '+
+        authUser.email+
+        ' · IP '+getClientIp(req)
+    );
+
+    writeDB(db);
+
+    return js(res,200,{
+      ok:true,
+      recoveryCodes:recovery.codes
+    });
+  }
+
   if(c==='dashboard'&&req.method==='GET')return js(res,200,dashboard(db));
   if(c==='motorsport' && id==='news' && req.method==='GET'){
     try{

@@ -1748,7 +1748,16 @@ async function loadIdentity() {
 
       ${
         data.twoFactor?.enabled
-          ? tag('2FA activo', 'green')
+          ? `
+              ${tag('2FA activo', 'green')}
+
+              <button
+                type="button"
+                onclick="regenerateRecoveryCodes()"
+              >
+                Regenerar códigos de recuperación
+              </button>
+            `
           : `<button
                type="button"
                onclick="startTwoFactorSetup()"
@@ -1937,6 +1946,60 @@ async function startTwoFactorSetup() {
   );
 
   await loadIdentity();
+}
+
+
+
+async function regenerateRecoveryCodes() {
+  const password =
+    prompt(
+      'Confirma tu contraseña de GS ONE:'
+    );
+
+  if (!password) {
+    return;
+  }
+
+  const code =
+    prompt(
+      'Ingresa el código actual de 6 dígitos de Authenticator:'
+    );
+
+  if (!code) {
+    return;
+  }
+
+  const response =
+    await api(
+      '/api/2fa-recovery-regenerate',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          password,
+          code: String(code).trim()
+        })
+      }
+    );
+
+  if (!response.ok) {
+    alert(
+      response.error ||
+      'No fue posible regenerar los códigos de recuperación'
+    );
+
+    return;
+  }
+
+  const recoveryCodes =
+    response.recoveryCodes || [];
+
+  alert(
+    'NUEVOS CÓDIGOS DE RECUPERACIÓN\n\n' +
+    'Los códigos anteriores quedaron invalidados.\n\n' +
+    'GUARDA ESTOS CÓDIGOS EN UN LUGAR SEGURO.\n' +
+    'CADA CÓDIGO FUNCIONA UNA SOLA VEZ:\n\n' +
+    recoveryCodes.join('\n')
+  );
 }
 
 
