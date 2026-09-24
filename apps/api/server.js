@@ -2240,6 +2240,74 @@ if(c==='rut-lookup' && req.method==='GET'){
     });
   }
 }
+  if(c==='import-products' && req.method==='GET'){
+    const url=new URL(req.url,'http://localhost');
+    const q=normalizeImportProductSearch(
+      url.searchParams.get('q') || ''
+    );
+    const provider=normalizeImportProductSearch(
+      url.searchParams.get('provider') || ''
+    );
+
+    const requestedPage=
+      Number.parseInt(url.searchParams.get('page') || '1',10);
+    const requestedLimit=
+      Number.parseInt(url.searchParams.get('limit') || '30',10);
+
+    const page=
+      Number.isFinite(requestedPage) && requestedPage > 0
+        ? requestedPage
+        : 1;
+
+    const limit=
+      Number.isFinite(requestedLimit)
+        ? Math.min(Math.max(requestedLimit,1),100)
+        : 30;
+
+    const allProducts=readJoseProducts();
+
+    const filtered=allProducts.filter(product=>{
+      if(provider){
+        const productProvider=
+          normalizeImportProductSearch(product.proveedor);
+
+        if(productProvider !== provider) return false;
+      }
+
+      if(!q) return true;
+
+      const searchable=[
+        product.codigo_tipo,
+        product.codigo,
+        product.item_original,
+        product.nombre_producto,
+        product.modelo,
+        product.homologacion,
+        product.color,
+        product.talla,
+        product.clasificacion,
+        product.proveedor
+      ]
+        .map(normalizeImportProductSearch)
+        .join(' ');
+
+      return searchable.includes(q);
+    });
+
+    const total=filtered.length;
+    const totalPages=Math.max(1,Math.ceil(total/limit));
+    const safePage=Math.min(page,totalPages);
+    const start=(safePage-1)*limit;
+
+    return js(res,200,{
+      items:filtered.slice(start,start+limit),
+      page:safePage,
+      limit,
+      total,
+      totalPages
+    });
+  }
+
   if(!cols.includes(c))return js(res,404,{error:'not found'});
   if(req.method==='GET')return js(res,200,id?(db[c].find(x=>x.id===id)||{}):db[c]);
   if(req.method==='PUT'){
