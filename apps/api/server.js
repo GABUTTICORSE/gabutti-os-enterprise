@@ -45,6 +45,17 @@ const DB=path.join(ROOT,'database','db.json');
 const CONFIG_DIR=path.join(ROOT,'config');
 const SRE_CONFIG=path.join(CONFIG_DIR,'sre.local.json');
 const WEB=path.join(ROOT,'apps','web','public');
+
+const JOSE_PRODUCTS_FILE=path.join(
+  ROOT,
+  'apps',
+  'api',
+  'data',
+  'importaciones',
+  'productos-jose.json'
+);
+
+
 const publicRoutes = new Set(['login']);
 const cols=['tax_directory','tax_sync_log','users','roles','clients','client_contacts','client_addresses','client_notes','client_alerts','client_ai_evaluations','client_audit','client_scores','inbox','inbox_analysis','commercial_processes','quotes','quote_items','sales_orders','history','products','stock','imports','tasks','finance','activity','transport_companies','transport_branches','catalogs'];
 function uid(p='id'){return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
