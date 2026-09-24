@@ -58,6 +58,14 @@ const JOSE_PRODUCTS_FILE=path.join(
 
 let joseProductsCache=null;
 
+function normalizeImportProductSearch(value=''){
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .trim()
+    .toLowerCase();
+}
+
 function readJoseProducts(){
   if(joseProductsCache) return joseProductsCache;
 
