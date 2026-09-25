@@ -1430,46 +1430,15 @@ function renderLists() {
     '<p class="meta">Sin stock.</p>';
 
 
+
   /* -------------------------
      IMPORTACIONES
      ------------------------- */
 
-  importsList.innerHTML =
-    importsData
-      .map(importItem =>
-        rec(
-          `${
-            importItem.supplier ||
-            'Proveedor'
-          } — ${
-            importItem.description ||
-            'Importación'
-          }`,
+  if (typeof renderImports === 'function') {
+    renderImports(importsData);
+  }
 
-          `${
-            importItem.status ||
-            '-'
-          } · ETA ${
-            importItem.eta ||
-            '-'
-          }`,
-
-          tag(
-            importItem.critical ===
-            'Sí'
-              ? 'Crítica'
-              : 'Normal',
-
-            importItem.critical ===
-            'Sí'
-              ? 'red'
-              : 'green'
-          )
-        )
-      )
-      .join('') ||
-
-    '<p class="meta">Sin importaciones.</p>';
 
 
   /* -------------------------

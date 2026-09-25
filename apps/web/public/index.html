@@ -749,7 +749,84 @@
 </section>
 <section id="products" class="view"><div class="head"><h2>Productos</h2><button onclick="openForm('products')">+ Producto</button></div><div id="productsList" class="list"></div></section>
 <section id="stock" class="view"><div class="head"><h2>Stock</h2><button onclick="openForm('stock')">+ Stock</button></div><div id="stockList" class="list"></div></section>
-<section id="imports" class="view"><div class="head"><h2>Importaciones</h2><button onclick="openForm('imports')">+ Importación</button></div><div id="importsList" class="list"></div></section>
+<section id="imports" class="view">
+  <div class="head">
+    <div>
+      <h2>Importaciones</h2>
+      <p class="meta">Órdenes, costos, seguimiento y catálogo de productos José.</p>
+    </div>
+    <button type="button" onclick="openImportOrderForm()">+ Nueva orden</button>
+  </div>
+
+  <div class="imports-tabs">
+    <button
+      type="button"
+      class="imports-tab active"
+      data-import-tab="orders"
+      onclick="showImportTab('orders')"
+    >
+      Órdenes
+    </button>
+
+    <button
+      type="button"
+      class="imports-tab"
+      data-import-tab="catalog"
+      onclick="showImportTab('catalog')"
+    >
+      Catálogo José
+    </button>
+
+    <button
+      type="button"
+      class="imports-tab"
+      data-import-tab="costing"
+      onclick="showImportTab('costing')"
+    >
+      Costeo unitario
+    </button>
+  </div>
+
+  <div id="importsOrdersPanel" class="imports-panel">
+    <div id="importsSummary"></div>
+    <div id="importsList" class="list"></div>
+  </div>
+
+  <div id="importsCatalogPanel" class="imports-panel hidden">
+    <div class="imports-catalog-toolbar">
+      <input
+        id="importProductSearch"
+        type="text"
+        placeholder="Buscar código, producto, modelo, homologación, talla o proveedor..."
+        autocomplete="off"
+        oninput="searchImportProducts()"
+      >
+      <select
+        id="importProductProvider"
+        onchange="searchImportProducts()"
+      >
+        <option value="">Todos los proveedores</option>
+        <option value="BELL">BELL</option>
+        <option value="RACINGSPIRIT">RACINGSPIRIT</option>
+        <option value="OMP">OMP</option>
+        <option value="STILO">STILO</option>
+        <option value="ZERONOISE">ZERONOISE</option>
+        <option value="GC">GC</option>
+        <option value="ORECA">ORECA</option>
+      </select>
+    </div>
+
+    <div id="importProductsMeta" class="meta"></div>
+    <div id="importProductsResults"></div>
+    <div id="importProductsPagination"></div>
+  </div>
+
+  <div id="importsCostingPanel" class="imports-panel hidden">
+    <div id="importCostingContent">
+      <p class="meta">Selecciona una orden para calcular el costeo unitario.</p>
+    </div>
+  </div>
+</section>
 <section id="tasks" class="view"><div class="head"><h2>Tareas</h2><button onclick="openForm('tasks')">+ Tarea</button></div><div id="tasksList" class="list"></div></section>
 <section id="finance" class="view"><div class="head"><h2>Finanzas</h2><button onclick="openForm('finance')">+ Movimiento</button></div><div id="financeList" class="list"></div></section>
 <section id="catalogs" class="view"><div class="head"><div><h2>Catálogos Maestros</h2><p class="meta">Una sola fuente para listas, transportistas y sucursales.</p></div><button onclick="openCatalogForm()">+ Nuevo registro</button></div><div class="catalog-layout"><aside class="catalog-sidebar"><label>Catálogo</label><select id="catalogCategory" onchange="renderCatalogs()"></select><div class="catalog-count" id="catalogCount"></div></aside><div><div id="catalogList" class="catalog-list"></div></div></div></section>
