@@ -17,3 +17,10 @@ estado_*.txt
 .env
 .env.*
 !.env.example
+
+# Cualquier copia de la base de datos (respaldos manuales incluidos), menos el ejemplo
+database/*.json
+!database/db.example.json
+database/backups/
+apps/api/database.js.original
+apps/api/server.js.original

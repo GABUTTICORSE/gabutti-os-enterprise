@@ -2308,6 +2308,11 @@ if(c==='rut-lookup' && req.method==='GET'){
     });
   }
 
+  // Seguridad: usuarios y roles NO se pueden leer ni modificar por la API genérica
+  // (expondría contraseñas cifradas y permitiría cambiar permisos).
+  // Se administran solo con la herramienta segura:  npm run usuarios
+  if(c==='users'||c==='roles')return js(res,403,{error:'Los usuarios se administran solo desde la herramienta segura de GS ONE'});
+
   if(!cols.includes(c))return js(res,404,{error:'not found'});
   if(req.method==='GET')return js(res,200,id?(db[c].find(x=>x.id===id)||{}):db[c]);
   if(req.method==='PUT'){
