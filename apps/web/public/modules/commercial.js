@@ -732,6 +732,14 @@ ${
       <button onclick="extendAcceptedQuote('${quote.id}')">
         ➕ Ampliar cotización
       </button>
+      <button onclick="registerLibreDteInvoiceForQuote('${quote.id}')">
+        🧾 Registrar factura de LibreDTE
+      </button>
+      ${
+        quote.taxDocumentNumber
+          ? `<button disabled>${quote.taxDocumentType || 'Documento'} N.º ${quote.taxDocumentNumber}</button>`
+          : ''
+      }
     `
     : ''
 }
@@ -909,6 +917,11 @@ function renderSalesOrders(){
       <div class="process-right">
         ${tag(o.status || 'Pendiente', processStatusColor(o.status || ''))}
         <strong>${money(o.total || 0)}</strong>
+        ${
+          o.taxDocumentNumber
+            ? `<p class="meta">${o.taxDocumentType || 'Documento'} N.º ${o.taxDocumentNumber}</p>`
+            : ''
+        }
       </div>
     </div>
   `).join('') || '<p class="meta">Sin pedidos de venta.</p>';
@@ -1038,6 +1051,25 @@ ${order.number}
 <div class="quick-actions">
 
 ${
+  currentUser?.role === 'Ventas'
+    ? `
+      ${
+        order.taxDocumentNumber
+          ? `
+            <button disabled>
+              ${order.taxDocumentType} N.º ${order.taxDocumentNumber} · LibreDTE
+            </button>
+          `
+          : `
+            <button onclick="registerLibreDteInvoiceForOrder('${order.id}')">
+              🧾 Registrar factura emitida en LibreDTE
+            </button>
+          `
+      }
+      <p class="meta">La factura se emite en LibreDTE. Aquí solo se guarda el folio.</p>
+    `
+    : `
+${
   order.status !== 'Cerrado'
     ? `
       <button onclick="nextSalesOrderStep('${order.id}')">
@@ -1065,6 +1097,8 @@ ${
       <button disabled>
         ${order.taxDocumentType} N.º ${order.taxDocumentNumber}
       </button>
+    `
+}
     `
 }
 ${
@@ -1117,6 +1151,67 @@ function nextSalesOrderLabel(order){
 async function nextSalesOrderStep(id){
   return advanceSalesOrder(id);
 }
+async function registerLibreDteInvoice(payload, after){
+  const type = prompt(
+    'Documento emitido en LibreDTE. Escribe Factura o Boleta:',
+    'Factura'
+  );
+
+  if(!type) return;
+
+  const documentType = String(type).trim();
+
+  if(!['Factura','Boleta'].includes(documentType)){
+    alert('Escribe Factura o Boleta.');
+    return;
+  }
+
+  const number = prompt('Número o folio emitido en LibreDTE:');
+
+  if(!number || !String(number).trim()) return;
+
+  const result = await api('/api/sales/invoices',{
+    method:'POST',
+    body:JSON.stringify({
+      ...payload,
+      taxDocumentType:documentType,
+      taxDocumentNumber:String(number).trim()
+    })
+  });
+
+  if(result?.error){
+    alert(result.error);
+    return;
+  }
+
+  await loadAll();
+
+  if(typeof after === 'function') after(result);
+
+  alert(
+    documentType +
+    ' registrada. GS ONE no emite el documento: solo guarda el folio que ya emitiste en LibreDTE.'
+  );
+}
+
+function registerLibreDteInvoiceForQuote(quoteId){
+  return registerLibreDteInvoice({ quoteId }, result => {
+    if(result.order?.id && typeof showSalesOrder === 'function'){
+      activateView('sales_orders');
+      showSalesOrder(result.order.id);
+      return;
+    }
+
+    showQuote(quoteId);
+  });
+}
+
+function registerLibreDteInvoiceForOrder(orderId){
+  return registerLibreDteInvoice({ orderId }, () => {
+    showSalesOrder(orderId);
+  });
+}
+
 function openTaxDocumentForm(orderId, type){
   const order = (state.sales_orders || []).find(o => o.id === orderId);
   if(!order) return;

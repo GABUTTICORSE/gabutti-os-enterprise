@@ -11,7 +11,7 @@
     "lint:js:fix": "npx eslint src --fix",
     "lint:report": "npx eslint src -o ./eslint-report.json --format json",
     "prettier": "prettier --write 'src/*/.js'",
-    "test": "node apps/api/tests/inbox_classifier.test.js && node apps/api/tests/inbox_flow.test.js && node apps/api/tests/auth.test.js && node apps/api/tests/whatsapp_webhook.test.js",
+    "test": "node apps/api/tests/inbox_classifier.test.js && node apps/api/tests/inbox_flow.test.js && node apps/api/tests/auth.test.js && node apps/api/tests/whatsapp_webhook.test.js && node apps/api/tests/sales_access.test.js",
     "configure:sre": "node scripts/configure-sre.js",
     "usuarios": "node scripts/usuarios.js"
   },

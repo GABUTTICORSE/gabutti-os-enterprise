@@ -861,7 +861,7 @@ async function renderDashboard() {
     currentUser &&
     currentUser.name
       ? currentUser.name
-      : 'Andrea';
+      : 'GS ONE';
 
   dashboardSetText(
     'dashboardGreeting',

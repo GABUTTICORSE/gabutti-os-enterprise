@@ -197,7 +197,7 @@ function createQuoteFromInbox({
 
     owner:
       inbox.owner ||
-      'Andrea'
+      'Ventas'
   };
 
   db.quotes.unshift(quote);
@@ -344,7 +344,8 @@ function createRecord({
   nextNumber,
   addHistory,
   hasHistory,
-  log
+  log,
+  actor
 }) {
   db[collection] =
     db[collection] ||
@@ -388,6 +389,18 @@ function createRecord({
 
     ...body
   };
+
+  if (
+    [
+      'inbox',
+      'quotes',
+      'tasks',
+      'commercial_processes'
+    ].includes(collection) &&
+    !String(item.owner || '').trim()
+  ) {
+    item.owner = String(actor?.name || '').trim() || 'Ventas';
+  }
 
   db[collection].unshift(item);
 
@@ -478,7 +491,7 @@ function createRecord({
 
       owner:
         item.owner ||
-        'Andrea',
+        'Ventas',
 
       dueDate:
         item.nextDate ||
@@ -517,7 +530,8 @@ function createRecord({
         'Stock',
 
       owner:
-        'Andrea',
+        String(actor?.name || '').trim() ||
+        'Ventas',
 
       dueDate:
         new Date()
@@ -536,7 +550,8 @@ function createRecord({
     db,
     'create',
     collection,
-    `Creado ${item.id}`
+    `Creado ${item.id}` +
+    (actor?.name ? ` por ${actor.name}` : '')
   );
 
   return item;

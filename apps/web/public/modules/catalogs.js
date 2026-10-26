@@ -1,7 +1,11 @@
 const CATALOG_LABELS={client_status:'Estados de cliente',client_type:'Tipos de cliente',client_origin:'Origen del cliente',discipline:'Disciplinas',experience_level:'Nivel de experiencia',dispatch_type:'Tipos de despacho',payment_condition:'Condiciones de pago',price_list:'Listas de precios',region:'Regiones',brand:'Marcas representadas',transport_company:'Empresas de transporte',transport_branch:'Sucursales de transporte'};
 function activeCatalog(category){return (state.catalogs||[]).filter(x=>x.category===category&&x.status!=='Inactivo').sort((a,b)=>Number(a.sortOrder||0)-Number(b.sortOrder||0)||String(a.name).localeCompare(String(b.name),'es'));}
 function fillSelect(select,items,placeholder='Seleccionar',valueKey='name',labelKey='name'){if(!select)return;const current=select.value;select.innerHTML='<option value="">'+placeholder+'</option>'+items.map(x=>'<option value="'+String(x[valueKey]||'').replace(/"/g,'&quot;')+'">'+(x[labelKey]||'')+'</option>').join('');if([...select.options].some(o=>o.value===current))select.value=current;}
-function executiveUsers(){return (state.users||[]).filter(x=>x.status!=='Inactivo'&&x.role==='Executive');}
+function executiveUsers(){
+  const users=(state.users||[]).filter(x=>x.status!=='Inactivo'&&(x.role==='Executive'||x.role==='Ventas'));
+  if(typeof currentUser!=='undefined'&&currentUser?.role==='Ventas'&&!users.some(x=>x.id===currentUser.id)) users.push(currentUser);
+  return users;
+}
 function loadCatalogOptions(){
  fillSelect(document.querySelector('[name="clientType"]'),activeCatalog('client_type'),'Seleccionar tipo');
  fillSelect(document.querySelector('[name="status"]'),activeCatalog('client_status'),'Seleccionar estado');

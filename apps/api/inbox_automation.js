@@ -28,6 +28,12 @@ function runInboxCreatedAutomation(
     db.commercial_processes || [];
   db.inbox_analysis = db.inbox_analysis || [];
 
+  const assignedOwner =
+    String(inboxItem.owner || helpers.actorName || '').trim() ||
+    'Ventas';
+
+  inboxItem.owner = assignedOwner;
+
   let changed = false;
 
   const normalize = value => String(value || '').trim().toLowerCase();
@@ -55,6 +61,10 @@ function runInboxCreatedAutomation(
       city: '',
       source: inboxItem.source || 'Inbox',
       status: 'Prospecto',
+      owner: assignedOwner,
+      number: typeof helpers.nextNumber === 'function'
+        ? helpers.nextNumber(db, 'clients')
+        : '',
       createdAutomatically: true,
       sourceInboxId: inboxItem.id
     };
@@ -134,7 +144,7 @@ function runInboxCreatedAutomation(
             : ''
         }`,
       type: 'Inbox',
-      owner: inboxItem.owner || 'Andrea',
+      owner: assignedOwner,
       dueDate: new Date()
         .toISOString()
         .slice(0, 10),
@@ -180,7 +190,7 @@ function runInboxCreatedAutomation(
         'Necesidad por definir',
       status: 'Nuevo',
       value: 0,
-      owner: inboxItem.owner || 'Andrea',
+      owner: assignedOwner,
       nextDate: new Date()
         .toISOString()
         .slice(0, 10),
