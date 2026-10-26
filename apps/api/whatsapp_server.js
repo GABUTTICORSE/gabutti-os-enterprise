@@ -61,7 +61,7 @@ function createInboxItem(db, inbound) {
     email: '',
     message: inbound.message,
     status: 'Nuevo',
-    owner: 'Andrea',
+    owner: 'Ventas',
     provider: inbound.provider,
     providerMessageId: inbound.providerMessageId,
     providerTimestamp: inbound.providerTimestamp,

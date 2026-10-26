@@ -385,6 +385,64 @@ function verifyPassword(password, stored) {
   );
 }
 
+function readApiTokenFromRequest(req) {
+  const header = String(req.headers.authorization || '');
+
+  if (/^Bearer\s+/i.test(header)) {
+    return header.replace(/^Bearer\s+/i, '').trim();
+  }
+
+  return String(req.headers['x-gsone-token'] || '').trim();
+}
+
+function createApiToken() {
+  const secret =
+    'gsone_' +
+    crypto.randomBytes(32).toString('base64url');
+
+  return {
+    secret,
+    tokenHash: hashPassword(secret),
+    prefix: secret.slice(0, 16),
+    hint: secret.slice(-4)
+  };
+}
+
+function publicApiTokens(user) {
+  return (user?.apiTokens || []).map(token => ({
+    id: token.id,
+    name: token.name,
+    hint: token.hint || '',
+    createdAt: token.createdAt || '',
+    createdBy: token.createdBy || '',
+    lastUsedAt: token.lastUsedAt || '',
+    revokedAt: token.revokedAt || '',
+    status: token.revokedAt ? 'Revocado' : 'Activo'
+  }));
+}
+
+function findActiveApiToken(db, secret) {
+  const value = String(secret || '').trim();
+
+  if (!value.startsWith('gsone_')) return null;
+
+  const prefix = value.slice(0, 16);
+
+  for (const user of db.users || []) {
+    if (user.status === 'Inactivo') continue;
+
+    for (const token of user.apiTokens || []) {
+      if (token.revokedAt) continue;
+      if (token.prefix && token.prefix !== prefix) continue;
+      if (verifyPassword(value, token.tokenHash)) {
+        return { user, token };
+      }
+    }
+  }
+
+  return null;
+}
+
 function sanitizeUser(user) {
   if (!user) return null;
 
@@ -659,4 +717,9 @@ module.exports = {
   rotateSession,
   sanitizeUser,
   verifyPassword,
-  verifyRecoveryCode};
+  verifyRecoveryCode,
+  readApiTokenFromRequest,
+  createApiToken,
+  publicApiTokens,
+  findActiveApiToken
+};

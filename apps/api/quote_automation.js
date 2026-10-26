@@ -80,7 +80,7 @@ function runQuoteAutomations(db, helpers = {}){
           title:
             `Primer seguimiento cotización ${quote.number || quote.id}`,
           type: 'Seguimiento Cotización',
-          owner: quote.owner || 'Andrea',
+          owner: quote.owner || 'Ventas',
           dueDate: new Date().toISOString().slice(0, 10),
           status: 'Pendiente',
           quoteId: quote.id,
@@ -108,7 +108,7 @@ function runQuoteAutomations(db, helpers = {}){
         title:
           `Segundo seguimiento cotización ${quote.number || quote.id}`,
         type: 'Seguimiento Cotización',
-        owner: quote.owner || 'Andrea',
+        owner: quote.owner || 'Ventas',
         dueDate: new Date().toISOString().slice(0, 10),
         status: 'Pendiente',
         quoteId: quote.id,

@@ -24,7 +24,7 @@ function localClientMetrics(c){
  const orders=(state.sales_orders||[]).filter(x=>clientMatches(x,c)), quotes=(state.quotes||[]).filter(x=>clientMatches(x,c)), fin=(state.finance||[]).filter(x=>clientMatches(x,c));
  const now=Date.now(), after=n=>now-n*86400000, o30=orders.filter(x=>new Date(x.createdAt||0)>=after(30)).length, o90=orders.filter(x=>new Date(x.createdAt||0)>=after(90)).length;
  const total=orders.filter(x=>new Date(x.createdAt||0)>=after(365)).reduce((a,x)=>a+Number(x.total||0),0), paid=fin.filter(x=>['Cobrado','Pagado'].includes(x.status)).length;
- const pay=fin.length?Math.round(paid/fin.length*100):70, score=Math.min(100,Math.round(25+Math.min(o90*8,28)+Math.min(total/200000,25)+pay*.18));
+ const pay=fin.length?Math.round(paid/fin.length*100):(currentUser?.role==='Ventas'?null:70), score=Math.min(100,Math.round(25+Math.min(o90*8,28)+Math.min(total/200000,25)+(pay||0)*.18));
  return {classification:score>=75?'A':score>=45?'B':'C',score,relationship:c.relationshipStatus||'Sin evaluar',purchases30:o30,purchases90:o90,total12m:total,paymentScore:pay,trend:o30>=2?'Subiendo':o90>=2?'Estable':'Por evaluar',opportunities:[]};
 }
 async function showClientProfile(id){
@@ -39,7 +39,7 @@ function renderClientShell(c,i){
  return `<div class="client-v1">
   <div class="client-v1-header"><div><div class="client-code">${esc(c.number||'CLI-PENDIENTE')}</div><h2>${esc(c.name||c.businessName||'Cliente')}</h2><p>${esc(c.rut||'-')} · ${esc(c.clientType||'-')} · Ejecutivo: ${esc(c.owner||'-')}</p></div><div class="client-v1-actions"><button onclick="openForm('clients','${esc(c.id)}')">Editar</button>${executive?`<button class="secondary" onclick="refreshClientRut('${esc(c.id)}','${esc(c.rut)}')">Actualizar desde SRE</button>`:''}${whatsappButton}<button class="secondary" onclick="createBusinessFromClient('${esc(c.id)}')">+ Crear negocio</button></div></div>
   <div class="client-summary-grid">
-   ${metric('Clasificación',i.classification,'ABC automático')}${metric('Puntaje',i.score+'/100',i.trend)}${metric('Relación',i.relationship,'Evaluación integral',color)}${metric('Compras 90 días',i.purchases90,'Últimos 3 meses')}${metric('Pagos',i.paymentScore+'%','Cumplimiento')}${metric('Compras 12 meses',money(i.total12m),'Volumen acumulado')}
+   ${metric('Clasificación',i.classification,'ABC automático')}${metric('Puntaje',i.score+'/100',i.trend)}${metric('Relación',i.relationship,'Evaluación integral',color)}${metric('Compras 90 días',i.purchases90,'Últimos 3 meses')}${i.paymentScore==null?'':metric('Pagos',i.paymentScore+'%','Cumplimiento')}${metric('Compras 12 meses',money(i.total12m),'Volumen acumulado')}
   </div>
   <div class="client-tabs"><button class="active" onclick="clientTab(this,'general')">General</button><button onclick="clientTab(this,'commercial')">Comercial</button><button onclick="clientTab(this,'billing')">Facturación</button><button onclick="clientTab(this,'dispatch')">Despacho</button><button onclick="clientTab(this,'timeline')">Historial</button>${executive?'<button onclick="clientTab(this,\'executive\')">Evaluación Executive</button>':''}<button onclick="clientTab(this,'audit')">Auditoría</button></div>
   <div id="clientTabContent">${tabGeneral(c,i)}</div>
@@ -84,7 +84,7 @@ function createBusinessFromClient(id){
       clientPaymentCondition: c.paymentCondition || '',
 
       status: 'Nuevo',
-      owner: c.owner || 'Andrea',
+      owner: c.owner || currentUser?.name || 'Ventas',
       nextAction: '',
       nextDate: '',
       source: 'Ficha Cliente'

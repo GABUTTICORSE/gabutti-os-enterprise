@@ -67,6 +67,10 @@ El simulador permite ingresar nombre, teléfono y mensaje, y muestra el resultad
 
 Los mensajes entrantes se guardan en Inbox y pasan por el motor de clasificación y automatización existente de GS ONE. Esta primera etapa no envía respuestas automáticas ni crea cotizaciones directamente desde el webhook.
 
+## Ventas y asistente
+
+El rol Ventas usa Inbox, clientes, cotizaciones, el folio de la factura emitida en LibreDTE, tareas y seguimientos. No ve finanzas, costos ni configuración. El usuario se crea con `npm run usuarios` (opción Ventas) y el token del asistente lo crea un Executive en Identidad y acceso. El detalle está en `docs/VENTAS.md`.
+
 ## Validación
 
 ```bash

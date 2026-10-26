@@ -65,7 +65,7 @@ function openQuoteFromInbox(inbox, client) {
     owner:
       inbox.owner ||
       currentUser?.name ||
-      'Andrea'
+      'Ventas'
   });
 
   recordForm.dataset.clientId = client.id;
@@ -122,7 +122,7 @@ async function markInboxAsProcessed(inbox, client) {
 
         processedBy:
           currentUser?.name ||
-          'Andrea'
+          'Ventas'
       })
     }
   );
@@ -144,30 +144,42 @@ async function processInbox(inboxId) {
     return;
   }
 
-  if (inbox.status === 'Procesado') {
+  if (
+    inbox.status === 'Procesado' ||
+    inbox.status === 'Convertido'
+  ) {
     alert('Esta entrada ya fue procesada.');
     return;
   }
 
   try {
-    let client = findClientFromInbox(inbox);
+    const result = await api(
+      `/api/sales/inbox/${inboxId}/process`,
+      { method: 'POST' }
+    );
 
-    if (!client) {
-      client = await createClientFromInbox(inbox);
+    if (result.error) {
+      throw new Error(result.error);
     }
 
-    await markInboxAsProcessed(inbox, client);
     await loadAll();
 
-    const refreshedClient =
+    const client =
       (state.clients || []).find(
-        item => item.id === client.id
-      ) || client;
+        item => item.id === result.client?.id
+      ) || result.client;
 
-    openQuoteFromInbox(
-      inbox,
-      refreshedClient
-    );
+    const refreshedInbox =
+      (state.inbox || []).find(
+        item => item.id === inboxId
+      ) || result.inbox || inbox;
+
+    if (client) {
+      openQuoteFromInbox(
+        refreshedInbox,
+        client
+      );
+    }
 
   } catch (error) {
     console.error(
@@ -866,6 +878,56 @@ twoFactorForm.onsubmit =
     showApp();
   };
 
+function openView(name) {
+  document
+    .querySelectorAll('.nav')
+    .forEach(item => {
+      item.classList.toggle(
+        'active',
+        item.dataset.view === name
+      );
+    });
+
+  document
+    .querySelectorAll('.view')
+    .forEach(item => {
+      item.classList.remove('active');
+    });
+
+  const view = document.getElementById(name);
+
+  if (view) {
+    view.classList.add('active');
+  }
+}
+
+function applyRoleChrome() {
+  const sales = currentUser?.role === 'Ventas';
+
+  document
+    .querySelectorAll('.exec-only')
+    .forEach(element => {
+      element.classList.toggle('hidden', sales);
+    });
+
+  if (sales) {
+    openView('inbox');
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(
+    /[&<>'"]/g,
+    character => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[character])
+  );
+}
+
 function showApp() {
   loginView.classList.add(
     'hidden'
@@ -880,6 +942,7 @@ function showApp() {
     `${currentUser.condition} · ` +
     `${currentUser.role}`;
 
+  applyRoleChrome();
   loadAll();
   loadIdentity();
 }
@@ -907,6 +970,20 @@ async function logout() {
 async function loadAll() {
   state =
     await api('/api/db');
+
+  if (!state || state.error) {
+    console.error(
+      'No se pudo cargar el espacio de trabajo:',
+      state && state.error
+    );
+
+    alert(
+      (state && state.error) ||
+      'No se pudo cargar la información.'
+    );
+
+    return;
+  }
 
   await renderDashboard();
 
@@ -1099,8 +1176,8 @@ function renderLists() {
     inboxData
       .map(inbox => {
         const processed =
-          inbox.status ===
-          'Procesado';
+          inbox.status === 'Procesado' ||
+          inbox.status === 'Convertido';
 
         let statusColor =
           'blue';
@@ -1778,6 +1855,50 @@ async function loadIdentity() {
       }
     </div>
 
+    ${
+      data.manageTokens
+        ? `
+          <h3>Tokens de API</h3>
+          <p class="meta">
+            El token se muestra una sola vez.
+            Créalo sobre el usuario de Ventas, no sobre un Executive.
+            Quien lo tenga entra como esa persona, sin código de Authenticator.
+          </p>
+          <div class="list">
+            ${
+              people.map(person => `
+                <div class="rec">
+                  <h3>${escapeHtml(person.name)}</h3>
+                  <div>${tag(person.role, 'blue')}</div>
+                  <div class="meta">${escapeHtml(person.email || '')}</div>
+                  <button
+                    type="button"
+                    onclick="createApiToken('${escapeHtml(person.id)}')"
+                  >
+                    Crear token
+                  </button>
+                  ${
+                    (person.apiTokens || []).map(token => `
+                      <div class="meta">
+                        ${escapeHtml(token.name)}
+                        · ${escapeHtml(token.status)}
+                        · termina en ${escapeHtml(token.hint || '----')}
+                        ${
+                          token.status === 'Activo'
+                            ? `<button type="button" class="secondary" onclick="revokeApiToken('${escapeHtml(person.id)}','${escapeHtml(token.id)}')">Revocar</button>`
+                            : ''
+                        }
+                      </div>
+                    `).join('')
+                  }
+                </div>
+              `).join('')
+            }
+          </div>
+        `
+        : ''
+    }
+
     <h3>
       Accesos recientes
     </h3>
@@ -1789,10 +1910,17 @@ async function loadIdentity() {
           ? accessLog
               .map(access =>
                 rec(
-                  access.action ===
-                  'login'
+                  access.action === 'login' ||
+                  access.action === 'login_2fa' ||
+                  access.action === 'login_2fa_recovery'
                     ? 'Ingreso correcto'
-                    : 'Intento fallido',
+                    : access.action === 'api_token_created'
+                      ? 'Token de API creado'
+                      : access.action === 'api_token_revoked'
+                        ? 'Token de API revocado'
+                        : access.action === 'logout'
+                          ? 'Cierre de sesión'
+                          : 'Intento fallido',
 
                   `${
                     access.detail ||
@@ -1809,15 +1937,13 @@ async function loadIdentity() {
                   }`,
 
                   tag(
-                    access.action ===
-                    'login'
-                      ? 'Autorizado'
-                      : 'Rechazado',
+                    String(access.action || '').includes('failed')
+                      ? 'Rechazado'
+                      : 'Autorizado',
 
-                    access.action ===
-                    'login'
-                      ? 'green'
-                      : 'red'
+                    String(access.action || '').includes('failed')
+                      ? 'red'
+                      : 'green'
                   )
                 )
               )
@@ -1827,6 +1953,75 @@ async function loadIdentity() {
       }
     </div>
   `;
+}
+
+async function createApiToken(userId) {
+  const name = prompt(
+    'Nombre del token (por ejemplo: asistente de ventas):'
+  );
+
+  if (!name || !String(name).trim()) {
+    return;
+  }
+
+  const result = await api(
+    '/api/api-tokens',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        userId,
+        name: String(name).trim()
+      })
+    }
+  );
+
+  if (!result.ok) {
+    alert(
+      result.error ||
+      'No fue posible crear el token.'
+    );
+
+    return;
+  }
+
+  alert(
+    'TOKEN CREADO. Cópialo ahora. No se volverá a mostrar.\n\n' +
+    result.token
+  );
+
+  await loadIdentity();
+}
+
+async function revokeApiToken(userId, tokenId) {
+  if (
+    !confirm(
+      '¿Revocar este token? El asistente dejará de poder entrar con él.'
+    )
+  ) {
+    return;
+  }
+
+  const result = await api(
+    '/api/api-tokens/revoke',
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        userId,
+        tokenId
+      })
+    }
+  );
+
+  if (!result.ok) {
+    alert(
+      result.error ||
+      'No fue posible revocar el token.'
+    );
+
+    return;
+  }
+
+  await loadIdentity();
 }
 
 

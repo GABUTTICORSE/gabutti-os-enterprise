@@ -15,7 +15,11 @@ const {
   rotateSession,
   sanitizeUser,
   verifyPassword,
-  verifyTotpCode
+  verifyTotpCode,
+  readApiTokenFromRequest,
+  createApiToken,
+  publicApiTokens,
+  findActiveApiToken
 } = require('./auth');
 const {
   runAutomations,
@@ -31,6 +35,18 @@ const {
 } = require('./integrations/whatsapp/whatsapp.webhook');
 const { readDB, writeDB } = require('./database');
 const { nextNumber } = require('./numbers');
+const {
+  canAccessCollection,
+  isExecutive,
+  isSales,
+  workspaceForUser
+} = require('./access');
+const {
+  createSalesInbox,
+  listSalesFollowUps,
+  processSalesInbox,
+  recordSalesInvoice
+} = require('./sales_flow');
 
 const {
   lookupTaxpayer
@@ -1131,7 +1147,7 @@ function createWhatsAppInboxItem(db,inbound){
     message:inbound.message||'',
 
     status:'Nuevo',
-    owner:'Andrea',
+    owner:'Ventas',
 
     provider:inbound.provider||'Meta Cloud API',
     providerMessageId:inbound.providerMessageId||'',
@@ -1154,13 +1170,15 @@ function createWhatsAppInboxItem(db,inbound){
       },
       {
         uid,
-        log
+        log,
+        actorName: item.owner,
+        nextNumber
       }
     );
 
-  log(
-    db,
-    'whatsapp_inbound',
+    log(
+      db,
+      'whatsapp_inbound',
     'inbox',
     'Mensaje WhatsApp recibido ' +
       (item.providerMessageId||item.id)
@@ -1767,40 +1785,246 @@ if(c==='logout'&&req.method==='POST'){
   return js(res,200,{ok:true});
 }
   const session=getSession(req);
-  if(!session)return js(res,401,{error:'Sesión inválida o vencida'});
+  let authUser=null;
+  let apiTokenUsed=false;
 
-  const rotatedSession=rotateSession(session);
+  if(session){
+    const rotatedSession=rotateSession(session);
 
-  if(rotatedSession){
-    res.setHeader(
-      'Set-Cookie',
-      createSessionCookie(
-        rotatedSession.token,
-        rotatedSession.expiresAt
-      )
+    if(rotatedSession){
+      res.setHeader(
+        'Set-Cookie',
+        createSessionCookie(
+          rotatedSession.token,
+          rotatedSession.expiresAt
+        )
+      );
+    }
+
+    authUser=(db.users||[]).find(
+      x =>
+        x.id === session.userId &&
+        x.status !== 'Inactivo'
     );
-  }
 
-  const authUser=(db.users||[]).find(
-    x =>
-      x.id === session.userId &&
-      x.status !== 'Inactivo'
-  );
+    if(!authUser){
+      revokeSession(req);
+
+      res.setHeader(
+        'Set-Cookie',
+        clearSessionCookie()
+      );
+
+      return js(res,401,{
+        error:'Usuario no disponible'
+      });
+    }
+  }else{
+    const presented=readApiTokenFromRequest(req);
+
+    if(presented){
+      const match=findActiveApiToken(db, presented);
+
+      if(!match){
+        return js(res,401,{
+          error:'Token de API inválido o revocado'
+        });
+      }
+
+      authUser=match.user;
+      apiTokenUsed=true;
+
+      const lastUsed=Date.parse(match.token.lastUsedAt || 0);
+
+      if(!Number.isFinite(lastUsed) || Date.now()-lastUsed>60000){
+        match.token.lastUsedAt=new Date().toISOString();
+        writeDB(db);
+      }
+    }
+  }
 
   if(!authUser){
-    revokeSession(req);
+    return js(res,401,{error:'Sesión inválida o vencida'});
+  }
 
-    res.setHeader(
-      'Set-Cookie',
-      clearSessionCookie()
-    );
-
-    return js(res,401,{
-      error:'Usuario no disponible'
+  if(
+    apiTokenUsed &&
+    ['api-tokens','development-reset','2fa-setup','2fa-enable','2fa-recovery-regenerate'].includes(c)
+  ){
+    return js(res,403,{
+      error:'Esta acción requiere entrar con usuario y contraseña.'
     });
   }
-  if(c==='me'&&req.method==='GET')return js(res,200,{user:sanitizeUser(authUser),session:{createdAt:session.createdAt,expiresAt:session.expiresAt}});
-  if(c==='identity'&&req.method==='GET')return js(res,200,{organization:authUser.organization||'Gabutti Corse',people:(db.users||[]).map(sanitizeUser),roles:db.roles||[],accessLog:(db.activity||[]).filter(x=>['login','login_failed','logout','login_2fa','login_2fa_failed','login_2fa_recovery'].includes(x.action)).slice(0,25),twoFactor:{enabled:authUser.totpEnabled===true}});
+
+  if(c==='sales' && id==='quotes' && req.method==='PUT' && parts[3]){
+    c='quotes';
+    id=parts[3];
+  }else if(c==='sales' && id==='tasks' && req.method==='PUT' && parts[3]){
+    c='tasks';
+    id=parts[3];
+  }else if(c==='sales' && id==='quotes' && req.method==='POST' && !parts[3]){
+    c='quotes';
+    id='';
+  }else if(c==='sales' && id==='tasks' && req.method==='POST' && !parts[3]){
+    c='tasks';
+    id='';
+  }else if(c==='sales'){
+    if(!isExecutive(authUser) && !isSales(authUser)){
+      return js(res,403,{error:'Tu rol no tiene acceso a Ventas.'});
+    }
+
+    try{
+      if(id==='follow-ups' && req.method==='GET'){
+        return js(res,200,listSalesFollowUps(db, authUser));
+      }
+
+      if(id==='invoices' && req.method==='POST' && !parts[3]){
+        const requestBody=await body(req);
+        const result=recordSalesInvoice({
+          db,
+          body:requestBody,
+          actor:authUser,
+          log
+        });
+        writeDB(db);
+        return js(res,200,result);
+      }
+
+      if(id==='inbox' && req.method==='POST' && !parts[3]){
+        const requestBody=await body(req);
+        const result=createSalesInbox({
+          db,
+          body:requestBody,
+          actor:authUser,
+          uid,
+          nextNumber,
+          log
+        });
+        writeDB(db);
+        return js(res,201,result);
+      }
+
+      if(id==='inbox' && parts[4]==='process' && req.method==='POST'){
+        const result=processSalesInbox({
+          db,
+          inboxId:parts[3],
+          actor:authUser,
+          uid,
+          nextNumber,
+          log
+        });
+        writeDB(db);
+        return js(res,200,result);
+      }
+
+      return js(res,404,{error:'Ruta de Ventas no encontrada.'});
+    }catch(error){
+      const status=Number.isInteger(error.status) ? error.status : 500;
+      return js(res, status, {
+        error: status===500
+          ? 'No fue posible completar la acción de Ventas.'
+          : error.message
+      });
+    }
+  }
+
+  if(c==='api-tokens' && !id && req.method==='POST'){
+    if(!isExecutive(authUser)){
+      return js(res,403,{error:'Solo Executive puede crear tokens.'});
+    }
+
+    const requestBody=await body(req);
+    const target=(db.users||[]).find(
+      user => user.id===requestBody.userId && user.status!=='Inactivo'
+    );
+
+    if(!target) return js(res,404,{error:'Usuario no encontrado.'});
+
+    const name=String(requestBody.name||'').trim();
+
+    if(!name) return js(res,400,{error:'Indica un nombre para el token.'});
+
+    const created=createApiToken();
+    const record={
+      id:uid('tok'),
+      name,
+      tokenHash:created.tokenHash,
+      prefix:created.prefix,
+      hint:created.hint,
+      createdAt:new Date().toISOString(),
+      createdBy:authUser.name,
+      lastUsedAt:'',
+      revokedAt:''
+    };
+
+    target.apiTokens=target.apiTokens||[];
+    target.apiTokens.unshift(record);
+    log(
+      db,
+      'api_token_created',
+      'users',
+      `Token "${name}" creado para ${target.name} por ${authUser.name}`
+    );
+    writeDB(db);
+
+    return js(res,201,{
+      ok:true,
+      id:record.id,
+      name,
+      hint:record.hint,
+      userId:target.id,
+      userName:target.name,
+      token:created.secret
+    });
+  }
+
+  if(c==='api-tokens' && id==='revoke' && req.method==='POST'){
+    if(!isExecutive(authUser)){
+      return js(res,403,{error:'Solo Executive puede revocar tokens.'});
+    }
+
+    const requestBody=await body(req);
+    const target=(db.users||[]).find(user => user.id===requestBody.userId);
+    const token=(target?.apiTokens||[]).find(item => item.id===requestBody.tokenId);
+
+    if(!token) return js(res,404,{error:'Token no encontrado.'});
+
+    token.revokedAt=token.revokedAt || new Date().toISOString();
+    log(
+      db,
+      'api_token_revoked',
+      'users',
+      `Token "${token.name}" de ${target.name} revocado por ${authUser.name}`
+    );
+    writeDB(db);
+    return js(res,200,{ok:true});
+  }
+
+  if(c==='me'&&req.method==='GET')return js(res,200,{user:sanitizeUser(authUser),session:{createdAt:session&&session.createdAt,expiresAt:session&&session.expiresAt,apiToken:apiTokenUsed}});
+  if(c==='identity'&&req.method==='GET'){
+    if(!isExecutive(authUser)){
+      return js(res,200,{
+        organization:authUser.organization||'Gabutti Corse',
+        people:[sanitizeUser(authUser)],
+        roles:[],
+        accessLog:[],
+        manageTokens:false,
+        twoFactor:{enabled:authUser.totpEnabled===true}
+      });
+    }
+
+    return js(res,200,{
+      organization:authUser.organization||'Gabutti Corse',
+      people:(db.users||[]).map(user => ({
+        ...sanitizeUser(user),
+        apiTokens:publicApiTokens(user)
+      })),
+      roles:db.roles||[],
+      accessLog:(db.activity||[]).filter(x=>['login','login_failed','logout','login_2fa','login_2fa_failed','login_2fa_recovery','api_token_created','api_token_revoked'].includes(x.action)).slice(0,25),
+      manageTokens:true,
+      twoFactor:{enabled:authUser.totpEnabled===true}
+    });
+  }
   if(c==='2fa-setup'&&req.method==='POST'){
     const b=await body(req);
 
@@ -2022,7 +2246,25 @@ if(c==='logout'&&req.method==='POST'){
     });
   }
 
-  if(c==='dashboard'&&req.method==='GET')return js(res,200,dashboard(db));
+  if(c==='dashboard'&&req.method==='GET'){
+    if(!isExecutive(authUser) && !isSales(authUser)){
+      return js(res,403,{error:'Tu rol no tiene acceso a esta información.'});
+    }
+
+    const data=dashboard(db);
+
+    if(isSales(authUser)){
+      data.kpis.receivable=0;
+      data.kpis.payable=0;
+      data.kpis.criticalStock=0;
+      data.kpis.activeImports=0;
+      data.priorities=(data.priorities||[]).filter(
+        item => item.module==='Comercial' || item.module==='Tareas'
+      );
+    }
+
+    return js(res,200,data);
+  }
   if(c==='motorsport' && id==='news' && req.method==='GET'){
     try{
       const items = await getTodayMotorsportNews(12);
@@ -2138,10 +2380,28 @@ if(c==='rut-lookup' && req.method==='GET'){
   }
 
   if(c==='client-intelligence'&&req.method==='GET'){
+    if(!isExecutive(authUser) && !isSales(authUser)){
+      return js(res,403,{error:'Tu rol no tiene acceso a esta información.'});
+    }
     const client=(db.clients||[]).find(x=>x.id===id);
     if(!client)return js(res,404,{error:'Cliente no encontrado'});
-    const metrics=clientMetrics(db,client);
-    return js(res,200,{clientId:id,...metrics,notes:(db.client_notes||[]).filter(x=>x.clientId===id),alerts:(db.client_alerts||[]).filter(x=>x.clientId===id),audit:(db.client_audit||[]).filter(x=>x.clientId===id).slice(0,50)});
+    const metrics=clientMetrics(
+      isSales(authUser) ? {...db, finance:[], client_notes:[]} : db,
+      client
+    );
+    if(isSales(authUser)){
+      metrics.paymentScore=null;
+      metrics.discountsSuspended=false;
+      metrics.opportunities=[];
+    }
+    const executive=isExecutive(authUser);
+    return js(res,200,{
+      clientId:id,
+      ...metrics,
+      notes:executive ? (db.client_notes||[]).filter(x=>x.clientId===id) : [],
+      alerts:executive ? (db.client_alerts||[]).filter(x=>x.clientId===id) : [],
+      audit:executive ? (db.client_audit||[]).filter(x=>x.clientId===id).slice(0,50) : []
+    });
   }
   if(c==='client-note'&&req.method==='POST'){
     if(authUser.role!=='Executive')return js(res,403,{error:'Acceso exclusivo Executive'});
@@ -2155,21 +2415,21 @@ if(c==='rut-lookup' && req.method==='GET'){
     writeDB(db);return js(res,201,note);
   }
   if(c==='db'&&req.method==='GET'){
-    if(authUser.role!=='Executive'){
+    const workspace=workspaceForUser(authUser, db, sanitizeUser);
+
+    if(!workspace){
       return js(res,403,{
-        error:'Acceso exclusivo Executive'
+        error:'Tu rol no tiene acceso a esta información.'
       });
     }
 
-    const safeDb={
-      ...db,
-      users:(db.users||[]).map(sanitizeUser)
-    };
-
-    return js(res,200,safeDb);
+    return js(res,200,workspace);
   }
   if(c==='demo'&&req.method==='POST'){return js(res,403,{ok:false,error:'Demo deshabilitado'})}
   if(c==='whatsapp-send' && req.method==='POST'){
+  if(!isExecutive(authUser)){
+    return js(res,403,{error:'Tu rol no tiene acceso a esta información.'});
+  }
   const inbox = (db.inbox || []).find(item => item.id === id);
 
   if(!inbox){
@@ -2241,6 +2501,9 @@ if(c==='rut-lookup' && req.method==='GET'){
   }
 }
   if(c==='import-products' && req.method==='GET'){
+    if(!isExecutive(authUser)){
+      return js(res,403,{error:'Tu rol no tiene acceso a esta información.'});
+    }
     const url=new URL(req.url,'http://localhost');
     const q=normalizeImportProductSearch(
       url.searchParams.get('q') || ''
@@ -2314,6 +2577,9 @@ if(c==='rut-lookup' && req.method==='GET'){
   if(c==='users'||c==='roles')return js(res,403,{error:'Los usuarios se administran solo desde la herramienta segura de GS ONE'});
 
   if(!cols.includes(c))return js(res,404,{error:'not found'});
+  if(!canAccessCollection(authUser, c, req.method)){
+    return js(res,403,{error:'Tu rol no tiene acceso a esta información.'});
+  }
   if(req.method==='GET')return js(res,200,id?(db[c].find(x=>x.id===id)||{}):db[c]);
   if(req.method==='PUT'){
     const requestBody = await body(req);
@@ -2426,7 +2692,7 @@ if(c==='rut-lookup' && req.method==='GET'){
             Number(updatedItem.quantity || 1) *
             Number(updatedItem.unitPrice || 0),
           status: 'Pendiente',
-          owner: updatedItem.owner || 'Andrea'
+          owner: updatedItem.owner || authUser.name || 'Ventas'
         };
 
         db.sales_orders.unshift(order);
@@ -2624,7 +2890,7 @@ if(c==='rut-lookup' && req.method==='GET'){
       }
     }
 
-    log(db,'update',c,`Actualizado ${id}`);
+    log(db,'update',c,`Actualizado ${id} por ${authUser.name}`);
     writeDB(db);
 
     return js(res,200,updatedItem);
@@ -2688,7 +2954,8 @@ if(c==='rut-lookup' && req.method==='GET'){
       addHistory: data => addHistory(db, data),
       hasHistory: (processId, title, sourceId) =>
         hasHistory(db, processId, title, sourceId),
-      log
+      log,
+      actor: authUser
     });
 
     if(c==='clients') addClientAudit(db,item.id,authUser,'Cliente creado',item.number+' · '+item.name);
@@ -2702,7 +2969,9 @@ if(c==='rut-lookup' && req.method==='GET'){
       },
       {
         uid,
-        log
+        log,
+        actorName: authUser.name,
+        nextNumber
       }
     );
 

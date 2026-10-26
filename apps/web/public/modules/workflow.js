@@ -37,6 +37,10 @@ async function reserveStock(order){
 }
 
 async function createInvoice(order){
+  if(currentUser?.role === 'Ventas'){
+    return registerLibreDteInvoiceForOrder(order.id);
+  }
+
   const resultFinance = await api('/api/finance',{
     method:'POST',
     body:JSON.stringify({

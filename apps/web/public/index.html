@@ -10,7 +10,7 @@
   class="login-logo"
 >
 <span class="login-version">DASHBOARD V3 · v0.8.2</span><h1>GS ONE</h1><p>Founder Company · Gabutti Corse</p><form id="loginForm"><label>Email</label><input name="email" type="email" autocomplete="username"><label>Contraseña</label><input name="password" type="password" autocomplete="current-password"><button>Entrar</button></form><form id="twoFactorForm" class="hidden"><label>Código de seguridad</label><input name="code" type="text" inputmode="text" autocomplete="one-time-code" placeholder="Código Authenticator o recuperación"><button>Verificar</button></form><small>Acceso mediante credenciales locales protegidas</small></div></section>
-<section id="appView" class="hidden"><header class="executive-header"><div class="header-title"><span class="header-eyebrow">GABUTTI CORSE · OPERATING SYSTEM</span><div class="header-title-line"><h1>GS ONE</h1><span class="header-version">V3</span></div><p id="userInfo">Centro ejecutivo de dirección y operaciones</p></div><div class="header-session"><span class="header-session-dot"></span><div><strong>Operación activa</strong><small>Información sincronizada</small></div></div><div class="top header-actions"><button class="secondary header-button" onclick="exportDB()">Exportar DB</button><button class="danger header-button header-exit" onclick="logout()">Salir</button></div></header>
+<section id="appView" class="hidden"><header class="executive-header"><div class="header-title"><span class="header-eyebrow">GABUTTI CORSE · OPERATING SYSTEM</span><div class="header-title-line"><h1>GS ONE</h1><span class="header-version">V3</span></div><p id="userInfo">Centro ejecutivo de dirección y operaciones</p></div><div class="header-session"><span class="header-session-dot"></span><div><strong>Operación activa</strong><small>Información sincronizada</small></div></div><div class="top header-actions"><button class="secondary header-button exec-only" onclick="exportDB()">Exportar DB</button><button class="danger header-button header-exit" onclick="logout()">Salir</button></div></header>
 <div class="app"><nav>
 <div class="sidebar-brand">
   <img
@@ -24,14 +24,14 @@
     <span>Executive OS · V3</span>
   </div>
 </div>
-<span class="sidebar-section-label">Dirección</span>
-<button class="nav active" data-view="dashboard">Centro de Dirección</button><button class="nav" data-view="field_trips">Salidas a terreno</button><button class="nav" data-view="inbox">Inbox</button><button class="nav" data-view="tasks">Tareas</button>
+<span class="sidebar-section-label exec-only">Dirección</span>
+<button class="nav active exec-only" data-view="dashboard">Centro de Dirección</button><button class="nav exec-only" data-view="field_trips">Salidas a terreno</button><button class="nav" data-view="inbox">Inbox</button><button class="nav" data-view="tasks">Tareas</button>
 <span class="sidebar-section-label">Comercial</span>
 <button class="nav" data-view="clients">Clientes</button><button class="nav" data-view="commercial_processes">Procesos Comerciales</button><button class="nav" data-view="quotes">Cotizaciones</button><button class="nav" data-view="sales_orders">Pedidos de Venta</button>
-<span class="sidebar-section-label">Operaciones</span>
-<button class="nav" data-view="products">Productos</button><button class="nav" data-view="stock">Stock</button><button class="nav" data-view="imports">Importaciones</button><button class="nav" data-view="finance">Finanzas</button>
-<span class="sidebar-section-label">Sistema</span>
-<button class="nav" data-view="catalogs">Catálogos Maestros</button><button class="nav" data-view="identity">Identidad y acceso</button><button class="nav" data-view="activity">Actividad</button></nav>
+<span class="sidebar-section-label exec-only">Operaciones</span>
+<button class="nav exec-only" data-view="products">Productos</button><button class="nav exec-only" data-view="stock">Stock</button><button class="nav exec-only" data-view="imports">Importaciones</button><button class="nav exec-only" data-view="finance">Finanzas</button>
+<span class="sidebar-section-label exec-only">Sistema</span>
+<button class="nav exec-only" data-view="catalogs">Catálogos Maestros</button><button class="nav exec-only" data-view="identity">Identidad y acceso</button><button class="nav exec-only" data-view="activity">Actividad</button></nav>
 <main>
 
 <section id="dashboard" class="view active">
@@ -681,7 +681,7 @@
 
 
 <section id="inbox" class="view"><div class="head"><h2>Inbox</h2><button onclick="openForm('inbox')">+ Entrada</button></div><div id="inboxList" class="list"></div></section>
-<section id="clients" class="view"><div class="head"><div><h2>Clientes</h2><p class="meta">Ficha única, facturación y despacho.</p></div><div class="head-actions"><button class="secondary" onclick="resetTestData()">Limpiar pruebas</button><button onclick="openClientForm()">+ Cliente</button></div></div><div id="clientOperationStatus" class="operation-status hidden"></div><div class="client-layout"><div><h3>Listado</h3><div id="clientsList" class="list"></div></div><div class="client-profile"><h3>Ficha única del cliente</h3><p class="meta">Selecciona un cliente para ver su historial, procesos, tareas y documentos.</p><div id="clientProfile"><p class="meta">Aún no hay cliente seleccionado.</p></div></div></div></section>
+<section id="clients" class="view"><div class="head"><div><h2>Clientes</h2><p class="meta">Ficha única, facturación y despacho.</p></div><div class="head-actions"><button class="secondary exec-only" onclick="resetTestData()">Limpiar pruebas</button><button onclick="openClientForm()">+ Cliente</button></div></div><div id="clientOperationStatus" class="operation-status hidden"></div><div class="client-layout"><div><h3>Listado</h3><div id="clientsList" class="list"></div></div><div class="client-profile"><h3>Ficha única del cliente</h3><p class="meta">Selecciona un cliente para ver su historial, procesos, tareas y documentos.</p><div id="clientProfile"><p class="meta">Aún no hay cliente seleccionado.</p></div></div></div></section>
 <section id="commercial_processes" class="view">
   <div class="head">
     <h2>Procesos Comerciales</h2>
@@ -1446,16 +1446,16 @@
 
 <dialog id="modal"><form id="recordForm"><h2 id="modalTitle"></h2><div id="fields"></div><div class="actions"><button type="button" class="secondary" onclick="closeForm()">Cancelar</button><button>Guardar</button></div></form></dialog>
 <script src="modules/utils.js?v=0.7.0"></script>
-<script src="modules/dashboard.js?v=0.8.0"></script>
-<script src="modules/clients.js?v=0.7.0"></script>
-<script src="modules/workflow.js?v=0.7.0"></script>
-<script src="modules/commercial.js?v=0.7.0"></script>
+<script src="modules/dashboard.js?v=0.8.3"></script>
+<script src="modules/clients.js?v=0.8.3"></script>
+<script src="modules/workflow.js?v=0.8.3"></script>
+<script src="modules/commercial.js?v=0.8.3"></script>
 <script src="modules/lists.js?v=0.7.0"></script>
 <script src="modules/forms.js?v=0.7.0"></script>
 <script src="modules/imports.js?v=0.1.0"></script>
 
-<script src="app.js?v=0.7.0"></script>
+<script src="app.js?v=0.8.3"></script>
 <script src="modules/client-form.js?v=0.7.0"></script>
-<script src="modules/catalogs.js?v=0.7.0"></script>
+<script src="modules/catalogs.js?v=0.8.3"></script>
 </body>
 </html>

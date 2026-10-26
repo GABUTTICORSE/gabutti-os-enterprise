@@ -25,7 +25,8 @@ function ask(question) {
 
 const ROLES = {
   "1": { name: "Executive", description: "Acceso total (administración)" },
-  "2": { name: "Equipo", description: "Uso diario, sin funciones de administración" }
+  "2": { name: "Equipo", description: "Uso diario, sin funciones de administración" },
+  "3": { name: "Ventas", description: "Ventas: inbox, clientes, procesos, cotizaciones, facturas y tareas" }
 };
 
 // Contraseña temporal fácil de dictar: sin letras confusas (0/O, 1/l/I)
@@ -43,7 +44,11 @@ function ensureRole(db, roleName) {
     db.roles.push({
       id: "r" + (db.roles.length + 1) + "_" + Date.now().toString(36),
       name: roleName,
-      permissions: roleName === "Executive" ? ["dashboard", "operations", "settings"] : ["dashboard", "operations"]
+      permissions: roleName === "Executive"
+        ? ["dashboard", "operations", "settings"]
+        : roleName === "Ventas"
+          ? ["inbox", "clients", "commercial_processes", "quotes", "tasks"]
+          : ["dashboard", "operations"]
     });
   }
 }
@@ -88,7 +93,7 @@ async function createUser() {
 
   console.log("Tipo de acceso:");
   Object.entries(ROLES).forEach(([k, r]) => console.log(`  ${k}. ${r.name} — ${r.description}`));
-  const role = ROLES[await ask("Elige 1 o 2: ")];
+  const role = ROLES[await ask("Elige 1, 2 o 3: ")];
   if (!role) {
     console.log("❌ Opción no válida.\n");
     return;
@@ -112,6 +117,10 @@ async function createUser() {
   ensureRole(db, role.name);
   writeDB(db);
   showPassword(user, password);
+  if (role.name === "Ventas") {
+    console.log("   El token del asistente no se crea aquí.");
+    console.log("   Un Executive lo genera en Identidad y acceso, sobre este usuario.\n");
+  }
 }
 
 async function resetPassword() {
