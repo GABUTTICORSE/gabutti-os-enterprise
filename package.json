@@ -5,18 +5,16 @@
   "main": "index.html",
   "scripts": {
     "start": "node apps/api/server.js",
-    "start:whatsapp": "node apps/api/whatsapp_server.js",
     "lint": "eslint .",
     "lint:js": "npx eslint src",
     "lint:js:fix": "npx eslint src --fix",
     "lint:report": "npx eslint src -o ./eslint-report.json --format json",
     "prettier": "prettier --write 'src/*/.js'",
-    "test": "node apps/api/tests/inbox_classifier.test.js && node apps/api/tests/inbox_flow.test.js && node apps/api/tests/auth.test.js && node apps/api/tests/whatsapp_webhook.test.js",
+    "test": "node apps/api/tests/inbox_classifier.test.js && node apps/api/tests/inbox_flow.test.js && node apps/api/tests/auth.test.js",
     "configure:sre": "node scripts/configure-sre.js",
     "usuarios": "node scripts/usuarios.js"
   },
   "dependencies": {
-    "express": "^5.2.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
